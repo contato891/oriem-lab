@@ -1,0 +1,1534 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Oriem Lab</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --verde:#3D5A4C;--terra:#8B5E3C;--terra-light:#C4956A;
+  --creme:#FAF6F1;--white:#fff;--ink:#1C1A18;--ink2:#4A4540;--ink3:#8C8078;
+  --border:#E8DDD4;--surface:#fff;--surface2:#F5EDE3;
+  --ok:#2E7D52;--ok-bg:#E8F5EE;--warn:#D4860A;--warn-bg:#FEF6E4;
+  --danger:#C0392B;--danger-bg:#FDECEA;
+  --radius:10px;--radius-sm:6px;
+}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--creme);color:var(--ink);font-size:14px;line-height:1.5;min-height:100vh}
+
+/* LAYOUT */
+.app{display:flex;min-height:100vh}
+
+/* SIDEBAR */
+.sidebar{width:200px;min-width:200px;background:var(--ink);display:flex;flex-direction:column;position:fixed;top:0;left:0;bottom:0;z-index:100;overflow-y:auto}
+.brand{padding:24px 16px 16px;border-bottom:1px solid rgba(255,255,255,0.08)}
+.brand-name{font-size:20px;font-weight:700;color:var(--terra-light);letter-spacing:0.5px}
+.brand-sub{font-size:10px;color:rgba(255,255,255,0.3);letter-spacing:1.5px;text-transform:uppercase;margin-top:2px}
+.nav{padding:12px 0;flex:1}
+.nav-item{display:flex;align-items:center;gap:10px;padding:10px 16px;color:rgba(255,255,255,0.55);cursor:pointer;border-left:3px solid transparent;font-size:13px;transition:all 0.15s;user-select:none}
+.nav-item:hover{background:rgba(255,255,255,0.05);color:rgba(255,255,255,0.9)}
+.nav-item.active{background:rgba(196,149,106,0.12);border-left-color:var(--terra-light);color:var(--terra-light);font-weight:500}
+.nav-icon{font-size:16px;width:20px;text-align:center}
+.nav-badge{background:var(--danger);color:#fff;font-size:10px;font-weight:700;padding:1px 5px;border-radius:10px;margin-left:auto}
+
+/* MAIN */
+.main{margin-left:200px;flex:1;display:flex;flex-direction:column;min-height:100vh}
+.topbar{background:var(--white);border-bottom:1px solid var(--border);padding:0 24px;height:54px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:50}
+.topbar h1{font-size:15px;font-weight:600}
+.content{padding:24px;flex:1}
+
+/* PAGE */
+.page{display:none}.page.active{display:block}
+
+/* BUTTONS */
+.btn{display:inline-flex;align-items:center;gap:6px;padding:8px 16px;border-radius:var(--radius-sm);font-size:13px;font-weight:500;font-family:inherit;cursor:pointer;border:none;transition:all 0.15s;white-space:nowrap}
+.btn-primary{background:var(--terra);color:#fff}.btn-primary:hover{background:#7A5233}
+.btn-verde{background:var(--verde);color:#fff}.btn-verde:hover{background:#2E4539}
+.btn-ghost{background:transparent;color:var(--ink2);border:1px solid var(--border)}.btn-ghost:hover{background:var(--surface2);color:var(--terra)}
+.btn-danger{background:var(--danger);color:#fff}
+.btn-sm{padding:5px 10px;font-size:12px}
+
+/* CARDS */
+.card{background:var(--white);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden}
+.card-header{padding:14px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.card-title{font-size:14px;font-weight:600}
+
+/* STATS */
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:14px;margin-bottom:24px}
+.stat{background:var(--white);border:1px solid var(--border);border-radius:var(--radius);padding:16px;position:relative;overflow:hidden}
+.stat::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:var(--terra)}
+.stat.verde::before{background:var(--verde)}
+.stat.warn::before{background:var(--warn)}
+.stat.danger::before{background:var(--danger)}
+.stat-val{font-size:28px;font-weight:700;line-height:1}
+.stat-lbl{font-size:12px;color:var(--ink3);margin-top:4px}
+
+/* TOOLBAR */
+.toolbar{padding:12px 18px;border-bottom:1px solid var(--border);display:flex;gap:8px;flex-wrap:wrap;align-items:center;background:#FDFBF9}
+.search-wrap{position:relative;flex:1;min-width:180px}
+.search-icon{position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--ink3)}
+.search-input{width:100%;padding:8px 12px 8px 32px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:13px;font-family:inherit;background:var(--white);outline:none}
+.search-input:focus{border-color:var(--terra)}
+.filter-sel{padding:8px 10px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:13px;font-family:inherit;background:var(--white);outline:none;cursor:pointer}
+.filter-sel:focus{border-color:var(--terra)}
+
+/* TABLE */
+.table-wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:13px}
+thead th{padding:9px 14px;text-align:left;font-size:11px;font-weight:600;letter-spacing:0.5px;text-transform:uppercase;color:var(--ink3);border-bottom:1px solid var(--border);background:#FDFBF9;white-space:nowrap;cursor:pointer;user-select:none}
+thead th:hover{color:var(--terra)}
+tbody tr{border-bottom:1px solid var(--border);cursor:pointer;transition:background 0.1s}
+tbody tr:hover{background:var(--surface2)}
+tbody tr:last-child{border-bottom:none}
+tbody td{padding:10px 14px;vertical-align:middle}
+
+/* BADGES */
+.badge{display:inline-block;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:500;white-space:nowrap}
+.badge-ok{background:var(--ok-bg);color:var(--ok)}
+.badge-warn{background:var(--warn-bg);color:var(--warn)}
+.badge-danger{background:var(--danger-bg);color:var(--danger)}
+.badge-cat{background:#EAF2EE;color:var(--verde)}
+.badge-neutral{background:#F0EDE9;color:var(--ink3)}
+.loc-tag{font-family:monospace;font-size:11px;background:var(--ink);color:rgba(255,255,255,0.9);padding:2px 6px;border-radius:4px}
+
+/* PAGINATION */
+.pagination{display:flex;align-items:center;justify-content:space-between;padding:12px 18px;border-top:1px solid var(--border)}
+.page-info{font-size:12px;color:var(--ink3)}
+.page-btns{display:flex;gap:4px}
+.page-btn{padding:4px 9px;border:1px solid var(--border);border-radius:5px;font-size:12px;cursor:pointer;background:var(--white);font-family:inherit}
+.page-btn:hover{background:var(--surface2)}
+.page-btn.active{background:var(--terra);color:#fff;border-color:var(--terra)}
+.page-btn:disabled{opacity:0.4;cursor:not-allowed}
+
+/* MODAL */
+.overlay{position:fixed;inset:0;background:rgba(28,26,24,0.5);z-index:200;display:flex;align-items:flex-start;justify-content:center;padding:40px 16px;overflow-y:auto}
+.overlay.hidden{display:none}
+.modal{background:var(--white);border-radius:var(--radius);width:100%;max-width:640px;box-shadow:0 8px 32px rgba(0,0,0,0.15);animation:modalIn 0.2s ease}
+@keyframes modalIn{from{transform:translateY(-12px);opacity:0}}
+.modal-header{padding:18px 22px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.modal-title{font-size:15px;font-weight:600}
+.modal-close{background:none;border:none;font-size:18px;cursor:pointer;color:var(--ink3);padding:4px;line-height:1}
+.modal-close:hover{color:var(--ink)}
+.modal-body{padding:22px;max-height:70vh;overflow-y:auto}
+.modal-footer{padding:14px 22px;border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:8px}
+
+/* FORM */
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.form-full{grid-column:1/-1}
+.field{display:flex;flex-direction:column;gap:4px}
+.field label{font-size:12px;font-weight:500;color:var(--ink2)}
+.req{color:var(--danger)}
+.field input,.field select,.field textarea{padding:8px 10px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:13px;font-family:inherit;background:var(--white);color:var(--ink);outline:none;transition:border-color 0.15s}
+.field input:focus,.field select:focus,.field textarea:focus{border-color:var(--terra)}
+.field textarea{resize:vertical;min-height:64px}
+.section-title{font-size:11px;font-weight:600;letter-spacing:0.8px;text-transform:uppercase;color:var(--ink3);margin:18px 0 10px;padding-top:14px;border-top:1px solid var(--border)}
+.section-title:first-child{border-top:none;margin-top:0;padding-top:0}
+
+/* TOGGLE */
+.toggle-wrap{display:flex;align-items:center;gap:8px;margin-top:4px}
+.toggle{position:relative;width:36px;height:20px}
+.toggle input{opacity:0;width:0;height:0}
+.toggle-slider{position:absolute;inset:0;background:var(--border);border-radius:20px;cursor:pointer;transition:background 0.2s}
+.toggle-slider::before{content:'';position:absolute;width:14px;height:14px;left:3px;top:3px;background:#fff;border-radius:50%;transition:transform 0.2s;box-shadow:0 1px 3px rgba(0,0,0,0.2)}
+.toggle input:checked+.toggle-slider{background:var(--verde)}
+.toggle input:checked+.toggle-slider::before{transform:translateX(16px)}
+
+/* FORMULA CARDS */
+.formula-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:14px}
+.formula-card{background:var(--white);border:1px solid var(--border);border-radius:var(--radius);padding:16px;cursor:pointer;transition:box-shadow 0.15s,transform 0.1s}
+.formula-card:hover{box-shadow:0 2px 12px rgba(0,0,0,0.1);transform:translateY(-1px)}
+.formula-card-name{font-weight:600;font-size:14px}
+.formula-card-meta{font-size:12px;color:var(--ink3);margin-top:3px}
+.formula-card-tags{display:flex;flex-wrap:wrap;gap:4px;margin-top:8px}
+
+/* EMPTY */
+.empty{text-align:center;padding:48px 20px;color:var(--ink3)}
+.empty-icon{font-size:40px;opacity:0.3;margin-bottom:10px}
+.empty-title{font-size:15px;font-weight:600;color:var(--ink2);margin-bottom:6px}
+
+/* TOAST */
+.toasts{position:fixed;bottom:20px;right:20px;z-index:999;display:flex;flex-direction:column;gap:6px}
+.toast{background:var(--ink);color:#fff;padding:10px 16px;border-radius:var(--radius-sm);font-size:13px;animation:toastIn 0.2s ease;display:flex;align-items:center;gap:8px;max-width:300px}
+.toast.ok{background:var(--ok)}.toast.err{background:var(--danger)}
+@keyframes toastIn{from{transform:translateX(16px);opacity:0}}
+
+/* ALERT ITEMS */
+.alert-item{display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:var(--radius-sm);margin-bottom:6px;font-size:13px}
+.alert-item.danger{background:var(--danger-bg);border:1px solid rgba(192,57,43,0.2);color:var(--danger)}
+.alert-item.warn{background:var(--warn-bg);border:1px solid rgba(212,134,10,0.2);color:var(--warn)}
+
+/* MOBILE */
+@media(max-width:700px){
+  .sidebar{width:100%;height:auto;position:fixed;bottom:0;top:auto;flex-direction:row;border-top:1px solid rgba(255,255,255,0.1)}
+  .brand,.nav-item span{display:none}
+  .nav{display:flex;flex-direction:row;padding:0;width:100%}
+  .nav-item{flex-direction:column;flex:1;justify-content:center;padding:8px 4px;border-left:none;border-top:3px solid transparent;gap:2px;font-size:10px}
+  .nav-item.active{border-top-color:var(--terra-light);border-left:none}
+  .nav-item span{display:block;font-size:9px}
+  .nav-icon{font-size:20px;width:auto}
+  .main{margin-left:0;padding-bottom:60px}
+  .topbar{padding:0 14px}
+  .content{padding:14px}
+  .form-grid{grid-template-columns:1fr}
+  .overlay{padding:0;align-items:flex-end}
+  .modal{border-radius:14px 14px 0 0;max-height:88vh;max-width:100%}
+  .stats{grid-template-columns:1fr 1fr}
+}
+</style>
+</head>
+<body>
+
+<div class="app">
+<aside class="sidebar">
+  <div class="brand">
+    <div class="brand-name">Oriem</div>
+    <div class="brand-sub">Lab · Gestão</div>
+  </div>
+  <nav class="nav">
+    <div class="nav-item active" id="nav-ingredientes" onclick="showPage('ingredientes')">
+      <span class="nav-icon">🌿</span><span>Ingredientes</span>
+    </div>
+    <div class="nav-item" id="nav-formulas" onclick="showPage('formulas')">
+      <span class="nav-icon">⚗️</span><span>Fórmulas</span>
+    </div>
+    <div class="nav-item" id="nav-alertas" onclick="showPage('alertas')">
+      <span class="nav-icon">🔔</span><span>Alertas</span>
+      <span class="nav-badge" id="alertas-badge" style="display:none">0</span>
+    </div>
+    <div class="nav-item" id="nav-fornecedores" onclick="showPage('fornecedores')">
+      <span class="nav-icon">🏪</span><span>Fornecedores</span>
+    </div>
+    <div class="nav-item" id="nav-compras" onclick="showPage('compras')">
+      <span class="nav-icon">🛒</span><span>Compras</span>
+      <span class="nav-badge" id="compras-badge" style="display:none">0</span>
+    </div>
+    <div class="nav-item" id="nav-producao" onclick="showPage('producao')">
+      <span class="nav-icon">🏭</span><span>Produção</span>
+    </div>
+  </nav>
+</aside>
+
+<main class="main">
+
+<!-- INGREDIENTES -->
+<div class="page active" id="page-ingredientes">
+  <div class="topbar">
+    <h1>Ingredientes</h1>
+    <div style="display:flex;gap:8px">
+      <button class="btn btn-ghost btn-sm" onclick="exportarEstoqueParaIA()" title="Exporta lista do estoque formatada para colar na IA">🤖 Exportar para IA</button>
+      <button class="btn btn-ghost btn-sm" onclick="exportBackup()">⬇ Backup</button>
+      <button class="btn btn-ghost btn-sm" onclick="document.getElementById('importInput').click()">⬆ Importar</button>
+      <input type="file" id="importInput" accept=".json" style="display:none" onchange="importBackup(event)">
+      <button class="btn btn-primary btn-sm" onclick="openIngModal(null)">+ Ingrediente</button>
+    </div>
+  </div>
+  <div class="content">
+    <div class="stats" id="ing-stats"></div>
+    <div class="card">
+      <div class="toolbar">
+        <div class="search-wrap">
+          <span class="search-icon">🔍</span>
+          <input class="search-input" id="ing-search" type="text" placeholder="Buscar nome, lote, fornecedor..." oninput="filterIngredientes()">
+        </div>
+        <select class="filter-sel" id="ing-filter-cat" onchange="filterIngredientes()">
+          <option value="">Todas as categorias</option>
+        </select>
+        <select class="filter-sel" id="ing-filter-loc" onchange="filterIngredientes()">
+          <option value="">Todas as localizações</option>
+        </select>
+        <select class="filter-sel" id="ing-filter-status" onchange="filterIngredientes()">
+          <option value="">Todos os status</option>
+          <option value="ok">✅ OK</option>
+          <option value="warn">⚠️ Vence em breve</option>
+          <option value="danger">🔴 Vencido/Crítico</option>
+          <option value="semdata">— Sem validade</option>
+        </select>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr>
+            <th onclick="sortIng('nome')">Ingrediente ↕</th>
+            <th onclick="sortIng('categoria')">Categoria ↕</th>
+            <th onclick="sortIng('localizacao')">Local ↕</th>
+            <th onclick="sortIng('fornecedor')">Fornecedor ↕</th>
+            <th>Lote</th>
+            <th onclick="sortIng('validade')">Validade ↕</th>
+            <th>Status</th>
+            <th></th>
+          </tr></thead>
+          <tbody id="ing-tbody"></tbody>
+        </table>
+      </div>
+      <div class="pagination">
+        <div class="page-info" id="ing-page-info"></div>
+        <div class="page-btns" id="ing-page-btns"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- FORMULAS -->
+<div class="page" id="page-formulas">
+  <div class="topbar">
+    <h1>Fórmulas</h1>
+    <button class="btn btn-primary btn-sm" onclick="openForModal(null)">+ Nova Fórmula</button>
+  </div>
+  <div class="content">
+    <div class="formula-grid" id="formula-grid"></div>
+  </div>
+</div>
+
+<!-- ALERTAS -->
+<div class="page" id="page-alertas">
+  <div class="topbar"><h1>Alertas</h1></div>
+  <div class="content" id="alertas-content"></div>
+</div>
+
+<!-- FORNECEDORES -->
+<div class="page" id="page-fornecedores">
+  <div class="topbar">
+    <h1>Fornecedores</h1>
+    <button class="btn btn-primary btn-sm" onclick="openFornModal(null)">+ Fornecedor</button>
+  </div>
+  <div class="content">
+    <div class="card">
+      <div class="toolbar">
+        <div class="search-wrap">
+          <span class="search-icon">🔍</span>
+          <input class="search-input" id="forn-search" type="text" placeholder="Buscar fornecedor..." oninput="renderFornecedores()">
+        </div>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr>
+            <th>Nome</th>
+            <th>Site / Contato</th>
+            <th>Cidade / Estado</th>
+            <th>Ingredientes fornecidos</th>
+            <th>Observações</th>
+            <th></th>
+          </tr></thead>
+          <tbody id="forn-tbody"></tbody>
+        </table>
+      </div>
+      <div id="forn-empty" class="empty" style="display:none">
+        <div class="empty-icon">🏪</div>
+        <div class="empty-title">Nenhum fornecedor cadastrado</div>
+        <p style="font-size:13px;margin-bottom:16px">Cadastre seus fornecedores para agilizar o registro de ingredientes.</p>
+        <button class="btn btn-primary" onclick="openFornModal(null)">+ Cadastrar fornecedor</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- LISTA DE COMPRAS -->
+<div class="page" id="page-compras">
+  <div class="topbar">
+    <h1>Lista de Compras</h1>
+    <div style="display:flex;gap:8px">
+      <button class="btn btn-ghost btn-sm" onclick="exportarListaCompras()">⬇ Exportar PDF</button>
+      <button class="btn btn-ghost btn-sm" onclick="limparCompradas()">✓ Limpar compradas</button>
+      <button class="btn btn-primary btn-sm" onclick="openAddCompra()">+ Adicionar</button>
+    </div>
+  </div>
+  <div class="content">
+    <div style="background:#FEF6E4;border:1px solid rgba(212,134,10,0.2);border-radius:10px;padding:14px 18px;margin-bottom:20px;font-size:13px;color:#92400e;">
+      💡 Ingredientes marcados como <strong>indisponível</strong> aparecem aqui automaticamente.
+    </div>
+    <div class="card">
+      <div class="toolbar">
+        <div class="search-wrap">
+          <span class="search-icon">🔍</span>
+          <input class="search-input" id="compras-search" type="text" placeholder="Buscar..." oninput="renderCompras()">
+        </div>
+        <select class="filter-sel" id="compras-filter" onchange="renderCompras()">
+          <option value="">Todos</option>
+          <option value="pendente">Pendentes</option>
+          <option value="comprado">Comprados</option>
+        </select>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr>
+            <th style="width:40px"></th>
+            <th>Ingrediente</th>
+            <th>Categoria</th>
+            <th>Último fornecedor</th>
+            <th>Observação</th>
+            <th></th>
+          </tr></thead>
+          <tbody id="compras-tbody"></tbody>
+        </table>
+      </div>
+      <div id="compras-empty" class="empty" style="display:none">
+        <div class="empty-icon">🛒</div>
+        <div class="empty-title">Lista de compras vazia</div>
+        <p style="font-size:13px">Marque ingredientes como indisponível para adicioná-los aqui.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- PRODUÇÃO -->
+<div class="page" id="page-producao">
+  <div class="topbar">
+    <h1>Produção</h1>
+    <button class="btn btn-primary btn-sm" onclick="openProdModal(null)">+ Nova Ordem</button>
+  </div>
+  <div class="content">
+    <div class="card">
+      <div class="toolbar">
+        <div class="search-wrap">
+          <span class="search-icon">🔍</span>
+          <input class="search-input" id="prod-search" type="text" placeholder="Buscar produto, lote..." oninput="renderProducao()">
+        </div>
+        <select class="filter-sel" id="prod-filter-status" onchange="renderProducao()">
+          <option value="">Todos os status</option>
+          <option value="planejado">Planejado</option>
+          <option value="em_andamento">Em andamento</option>
+          <option value="concluido">Concluído</option>
+          <option value="reprovado">Reprovado</option>
+        </select>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr>
+            <th>Lote</th><th>Produto</th><th>Data</th>
+            <th>Qtd Planejada</th><th>Qtd Produzida</th>
+            <th>Status</th><th>Qualidade</th><th></th>
+          </tr></thead>
+          <tbody id="prod-tbody"></tbody>
+        </table>
+      </div>
+      <div id="prod-empty" class="empty" style="display:none">
+        <div class="empty-icon">🏭</div>
+        <div class="empty-title">Nenhuma ordem de produção</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</main>
+</div>
+
+<!-- MODAL INGREDIENTE -->
+<div class="overlay hidden" id="modal-ing">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title" id="modal-ing-title">Novo Ingrediente</div>
+      <button class="modal-close" onclick="closeModal('modal-ing')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="field form-full">
+          <label>Nome <span class="req">*</span></label>
+          <input type="text" id="i-nome" placeholder="Ex: Extrato de Centella Asiática">
+        </div>
+        <div class="field">
+          <label>Nome INCI</label>
+          <input type="text" id="i-inci" placeholder="Ex: Centella Asiatica Extract">
+        </div>
+        <div class="field">
+          <label>Categoria</label>
+          <select id="i-categoria">
+            <option>Óleos e Manteigas</option>
+            <option>Ativos e Tratamento</option>
+            <option>Óleos Essenciais</option>
+            <option>Botânicos e Pós</option>
+            <option>Fase Aquosa</option>
+            <option>Tensoativos</option>
+            <option>Emulsionantes e Ceras</option>
+            <option>Aditivos e Conservantes</option>
+            <option>Fragrâncias</option>
+            <option>A Classificar</option>
+          </select>
+        </div>
+        <div class="section-title form-full">📦 Estoque</div>
+        <div class="field">
+          <label>Localização</label>
+          <select id="i-loc">
+            <option value="">— selecionar —</option>
+            <option>GELADEIRA</option><option>AP2</option><option>AP2.1</option>
+            <option>AP3</option><option>AP3.1</option><option>EP1</option>
+            <option>EP1.1</option><option>EP2</option><option>EP2.1</option>
+            <option>EP3.1</option><option>CF</option><option>FALTA</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Disponível</label>
+          <div class="toggle-wrap">
+            <label class="toggle"><input type="checkbox" id="i-disp" checked><span class="toggle-slider"></span></label>
+            <span id="i-disp-label" style="font-size:13px">Sim</span>
+          </div>
+        </div>
+        <div class="field">
+          <label>Quantidade</label>
+          <input type="text" id="i-qtd" placeholder="ex: 500">
+        </div>
+        <div class="field">
+          <label>Unidade</label>
+          <select id="i-unidade">
+            <option>g</option><option>kg</option><option>mL</option><option>L</option><option>un</option>
+          </select>
+        </div>
+        <div class="section-title form-full">🧾 Rastreabilidade (ANVISA)</div>
+        <div class="field">
+          <label>Fornecedor <span class="req">*</span></label>
+          <input type="text" id="i-forn" placeholder="Digite ou selecione..." list="forn-datalist" autocomplete="off">
+          <datalist id="forn-datalist"></datalist>
+        </div>
+        <div class="field">
+          <label>Lote <span class="req">*</span></label>
+          <input type="text" id="i-lote" placeholder="Ex: EE2512">
+        </div>
+        <div class="field">
+          <label>Validade</label>
+          <input type="date" id="i-validade">
+        </div>
+        <div class="field">
+          <label>Custo (R$)</label>
+          <input type="text" id="i-custo" placeholder="0,00">
+        </div>
+        <div class="section-title form-full">📁 Documentos</div>
+        <div class="field form-full">
+          <label>Link Google Drive (FISPQ/Laudo/COA)</label>
+          <input type="text" id="i-drive" placeholder="https://drive.google.com/...">
+        </div>
+        <div class="field form-full">
+          <label>Observações</label>
+          <textarea id="i-obs" placeholder="Notas técnicas, concentração máxima, pH de uso..."></textarea>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('modal-ing')">Cancelar</button>
+      <button class="btn btn-danger btn-sm" id="btn-del-ing" onclick="deleteIng()" style="display:none;margin-right:auto">🗑 Excluir</button>
+      <button class="btn btn-primary" onclick="saveIng()">Salvar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL FÓRMULA -->
+<div class="overlay hidden" id="modal-for">
+  <div class="modal" style="max-width:720px">
+    <div class="modal-header">
+      <div class="modal-title" id="modal-for-title">Nova Fórmula</div>
+      <button class="modal-close" onclick="closeModal('modal-for')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="field form-full">
+          <label>Nome da Fórmula <span class="req">*</span></label>
+          <input type="text" id="f-nome" placeholder="Ex: Mousse Bioativa Dermosfera">
+        </div>
+        <div class="field">
+          <label>Linha</label>
+          <select id="f-linha" onchange="updateSublinhas()">
+            <option value="">—</option>
+            <option>Capilar</option><option>Corporal</option>
+            <option>Facial</option><option>Limpeza</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Sublinha</label>
+          <select id="f-sublinha">
+            <option value="">—</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Tipo</label>
+          <input type="text" id="f-tipo" placeholder="ex: Emulsão O/A">
+        </div>
+        <div class="field">
+          <label>Versão</label>
+          <input type="text" id="f-versao" placeholder="v1.0">
+        </div>
+        <div class="field">
+          <label>Massa base (g)</label>
+          <input type="number" id="f-massa" placeholder="500">
+        </div>
+        <div class="field form-full">
+          <label>Objetivo / Resultado esperado</label>
+          <textarea id="f-obs" style="min-height:56px" placeholder="ex: Hidratante de alta performance, pH 5.0–5.5"></textarea>
+        </div>
+      </div>
+
+      <div class="section-title">Ingredientes por Fase</div>
+      <div style="overflow-x:auto;margin-bottom:10px">
+        <table style="width:100%;border-collapse:collapse;font-size:13px">
+          <thead><tr style="background:#f7f4ee">
+            <th style="padding:7px 10px;text-align:left;font-size:11px;font-weight:600;text-transform:uppercase;color:var(--ink3);border-bottom:1px solid var(--border);width:55px">Fase</th>
+            <th style="padding:7px 10px;text-align:left;font-size:11px;font-weight:600;text-transform:uppercase;color:var(--ink3);border-bottom:1px solid var(--border)">Ingrediente</th>
+            <th style="padding:7px 10px;text-align:left;font-size:11px;font-weight:600;text-transform:uppercase;color:var(--ink3);border-bottom:1px solid var(--border);width:75px">Qtd (g)</th>
+            <th style="padding:7px 10px;text-align:left;font-size:11px;font-weight:600;text-transform:uppercase;color:var(--ink3);border-bottom:1px solid var(--border);width:65px">%</th>
+            <th style="padding:7px 10px;text-align:left;font-size:11px;font-weight:600;text-transform:uppercase;color:var(--ink3);border-bottom:1px solid var(--border)">Função</th>
+            <th style="width:32px;border-bottom:1px solid var(--border)"></th>
+          </tr></thead>
+          <tbody id="f-ing-list"></tbody>
+        </table>
+      </div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center">
+        <select id="f-add-fase" style="width:65px;padding:7px 6px;border:1px solid var(--border);border-radius:6px;font-size:13px;font-family:inherit;background:var(--white);outline:none">
+          <option>A</option><option>B</option><option>C</option><option>D</option>
+        </select>
+        <select id="f-add-ing" style="flex:1;min-width:140px;padding:7px 8px;border:1px solid var(--border);border-radius:6px;font-size:13px;font-family:inherit;background:var(--white);outline:none"></select>
+        <input type="text" id="f-add-qty" placeholder="g" style="width:65px;padding:7px 8px;border:1px solid var(--border);border-radius:6px;font-size:13px;font-family:inherit;background:var(--white);outline:none">
+        <input type="text" id="f-add-conc" placeholder="%" style="width:55px;padding:7px 8px;border:1px solid var(--border);border-radius:6px;font-size:13px;font-family:inherit;background:var(--white);outline:none">
+        <input type="text" id="f-add-func" placeholder="função" style="flex:1;min-width:100px;padding:7px 8px;border:1px solid var(--border);border-radius:6px;font-size:13px;font-family:inherit;background:var(--white);outline:none">
+        <button class="btn btn-ghost btn-sm" onclick="addForIng()">+ Add</button>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('modal-for')">Cancelar</button>
+      <button class="btn btn-danger btn-sm" id="btn-del-for" onclick="deleteFor()" style="display:none;margin-right:auto">🗑 Excluir</button>
+      <button class="btn btn-primary" onclick="saveFor()">Salvar Fórmula</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL FORNECEDOR -->
+<div class="overlay hidden" id="modal-forn">
+  <div class="modal" style="max-width:560px">
+    <div class="modal-header">
+      <div class="modal-title" id="modal-forn-title">Novo Fornecedor</div>
+      <button class="modal-close" onclick="closeModal('modal-forn')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="field form-full">
+          <label>Nome do Fornecedor <span class="req">*</span></label>
+          <input type="text" id="fn-nome" placeholder="Ex: Engenharia das Essências">
+        </div>
+        <div class="field">
+          <label>Site</label>
+          <input type="text" id="fn-site" placeholder="www.engessencias.com.br">
+        </div>
+        <div class="field">
+          <label>WhatsApp / Telefone</label>
+          <input type="text" id="fn-tel" placeholder="(11) 99999-9999">
+        </div>
+        <div class="field">
+          <label>E-mail</label>
+          <input type="text" id="fn-email" placeholder="contato@fornecedor.com.br">
+        </div>
+        <div class="field">
+          <label>Cidade / Estado</label>
+          <input type="text" id="fn-cidade" placeholder="São Paulo / SP">
+        </div>
+        <div class="field form-full">
+          <label>Observações</label>
+          <textarea id="fn-obs" placeholder="Prazo de entrega, frete, mínimo de pedido..."></textarea>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('modal-forn')">Cancelar</button>
+      <button class="btn btn-danger btn-sm" id="btn-del-forn" onclick="deleteForn()" style="display:none;margin-right:auto">🗑 Excluir</button>
+      <button class="btn btn-primary" onclick="saveForn()">Salvar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL COMPRA MANUAL -->
+<div class="overlay hidden" id="modal-compra">
+  <div class="modal" style="max-width:480px">
+    <div class="modal-header">
+      <div class="modal-title">Adicionar à lista</div>
+      <button class="modal-close" onclick="closeModal('modal-compra')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="field form-full">
+          <label>Ingrediente</label>
+          <select id="c-ing" style="width:100%;padding:9px 10px;border:1px solid var(--border);border-radius:6px;font-size:13px;font-family:inherit;background:var(--white);outline:none"></select>
+        </div>
+        <div class="field form-full">
+          <label>Observação / Quantidade desejada</label>
+          <input type="text" id="c-obs" placeholder="ex: 500g, verificar preço na EE">
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('modal-compra')">Cancelar</button>
+      <button class="btn btn-primary" onclick="saveCompraManual()">Adicionar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL PRODUÇÃO -->
+<div class="overlay hidden" id="modal-prod">
+  <div class="modal" style="max-width:680px">
+    <div class="modal-header">
+      <div class="modal-title" id="modal-prod-title">Nova Ordem</div>
+      <button class="modal-close" onclick="closeModal('modal-prod')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="field form-full">
+          <label>Produto <span class="req">*</span></label>
+          <input type="text" id="p-produto" placeholder="ex: SABONETE MOUSSE NUVEM DE BANHO">
+        </div>
+        <div class="field">
+          <label>Lote</label>
+          <input type="text" id="p-lote" placeholder="gerado automaticamente">
+        </div>
+        <div class="field">
+          <label>Data <span class="req">*</span></label>
+          <input type="date" id="p-data">
+        </div>
+        <div class="field">
+          <label>Status</label>
+          <select id="p-status">
+            <option value="planejado">Planejado</option>
+            <option value="em_andamento">Em andamento</option>
+            <option value="concluido">Concluído ✓</option>
+            <option value="reprovado">Reprovado ✗</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Qtd Planejada</label>
+          <input type="text" id="p-qtd-plan" placeholder="ex: 500g">
+        </div>
+        <div class="field">
+          <label>Qtd Produzida</label>
+          <input type="text" id="p-qtd-prod" placeholder="ex: 450g">
+        </div>
+        <div class="field">
+          <label>Qualidade</label>
+          <select id="p-qual">
+            <option value="">— a verificar —</option>
+            <option value="aprovado">✓ Aprovado</option>
+            <option value="reprovado">✗ Reprovado</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Fórmula vinculada</label>
+          <select id="p-formula">
+            <option value="">— nenhuma —</option>
+          </select>
+        </div>
+        <div class="field form-full">
+          <label>Observações / pH medido / substituições</label>
+          <textarea id="p-obs" placeholder="ex: pH 5,5. Substituí OE Lavanda por Camomila..."></textarea>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('modal-prod')">Cancelar</button>
+      <button class="btn btn-danger btn-sm" id="btn-del-prod" onclick="deleteProd()" style="display:none;margin-right:auto">🗑 Excluir</button>
+      <button class="btn btn-primary" onclick="saveProd()">Salvar</button>
+    </div>
+  </div>
+</div>
+
+<div class="toasts" id="toasts"></div>
+
+<script>
+// ── DATA ──
+const SEED_INGREDIENTS = [{"id": 1, "nome": "OV Castanha do Pará Virgem", "categoria": "Óleos e Manteigas", "localizacao": "AP3", "fornecedor": "", "lote": "", "validade": "", "unidade": "", "estoque_atual": null, "estoque_minimo": null, "disponivel": true, "link_drive": "", "nome_inci": "", "funcao": "", "notas": "", "fase": "", "ph_min": null, "ph_max": null, "temp_max": null, "concentracao_min": null, "concentracao_max": null}, {"id": 2, "nome": "OV de Babaçu", "categoria": "Óleos e Manteigas", "localizacao": "AP3", "fornecedor": "", "lote": "", "validade": "", "unidade": "", "estoque_atual": null, "estoque_minimo": null, "disponivel": true, "link_drive": "", "nome_inci": "", "funcao": "", "notas": "", "fase": "", "ph_min": null, "ph_max": null, "temp_max": null, "concentracao_min": null, "concentracao_max": null}, {"id": 3, "nome": "OV Amêndoas Doce", "categoria": "Óleos e Manteigas", "localizacao": "AP3", "fornecedor": "", "lote": "", "validade": "", "unidade": "", "estoque_atual": null, "estoque_minimo": null, "disponivel": true, "link_drive": "", "nome_inci": "", "funcao": "", "notas": "", "fase": "", "ph_min": null, "ph_max": null, "temp_max": null, "concentracao_min": null, "concentracao_max": null}, {"id": 4, "nome": "OV Macaúba Semente", "categoria": "Óleos e Manteigas", "localizacao": "AP3", "fornecedor": "", "lote": "", "validade": "", "unidade": "", "estoque_atual": null, "estoque_minimo": null, "disponivel": true, "link_drive": "", "nome_inci": "", "funcao": "", "notas": "", "fase": "", "ph_min": null, "ph_max": null, "temp_max": null, "concentracao_min": null, "concentracao_max": null}, {"id": 5, "nome": "OV Pracaxi Virgem", "categoria": "Óleos e Manteigas", "localizacao": "AP3", "fornecedor": "", "lote": "", "validade": "", "unidade": "", "estoque_atual": null, "estoque_minimo": null, "disponivel": true, "link_drive": "", "nome_inci": "", "funcao": "", "notas": "", "fase": "", "ph_min": null, "ph_max": null, "temp_max": null, "concentracao_min": null, "concentracao_max": null}, {"id": 6, "nome": "OV Damasco Apricot (França)", "categoria": "Óleos e Manteigas", "localizacao": "AP3", "fornecedor": "", "lote": "", "validade": "", "unidade": "", "estoque_atual": null, "estoque_minimo": null, "disponivel": true, "link_drive": "", "nome_inci": "", "funcao": "", "notas": "", "fase": "", "ph_min": null, "ph_max": null, "temp_max": null, "concentracao_min": null, "concentracao_max": null}, {"id": 7, "nome": "OV Copaíba", "categoria": "Óleos e Manteigas", "localizacao": "AP3", "fornecedor": "", "lote": "", "validade": "", "unidade": "", "estoque_atual": null, "estoque_minimo": null, "disponivel": true, "link_drive": "", "nome_inci": "", "funcao": "", "notas": "", "fase": "", "ph_min": null, "ph_max": null, "temp_max": null, "concentracao_min": null, "concentracao_max": null}, {"id": 8, "nome": "OV Maracujá Virgem", "categoria": "Óleos e Manteigas", "localizacao": "AP3", "fornecedor": "", "lote": "", "validade": "", "unidade": "", "estoque_atual": null, "estoque_minimo": null, "disponivel": true, "link_drive": "", "nome_inci": "", "funcao": "", "notas": "", "fase": "", "ph_min": null, "ph_max": null, "temp_max": null, "concentracao_min": null, "concentracao_max": null}, {"id": 9, "nome": "OV Rícino", "categoria": "Óleos e Manteigas", "localizacao": "AP3", "fornecedor": "", "lote": "", "validade": "", "unidade": "", "estoque_atual": null, "estoque_minimo": null, "disponivel": true, "link_drive": "", "nome_inci": "", "funcao": "", "notas": "", "fase": "", "ph_min": null, "ph_max": null, "temp_max": null, "concentracao_min": null, "concentracao_max": null}, {"id": 10, "nome": "OV Andiroba Virgem", "categoria": "Óleos e Manteigas", "localizacao": "AP3", "fornecedor": "", "lote": "", "validade": "", "unidade": "", "estoque_atual": null, "estoque_minimo": null, "disponivel": true, "link_drive": "", "nome_inci": "", "funcao": "", "notas": "", "fase": "", "ph_min": null, "ph_max": null, "temp_max": null, "concentracao_min": null, "concentracao_max": null}, {"id": 11, "nome": "OV Rosa Mosqueta", "categoria": "Óleos e Manteigas", "localizacao": "AP3", "fornecedor": "", "lote": "", "validade": "", "unidade": "", "estoque_atual": null, "estoque_minimo": null, "disponivel": true, "link_drive": "", "nome_inci": "", "funcao": "", "notas": "", "fase": "", "ph_min": null, "ph_max": null, "temp_max": null, "concentracao_min": null, "concentracao_max": null}, {"id": 12, "nome": "OV de Girassol", "categoria": "Óleos e Manteigas", "localizacao": "AP3", "fornecedor": "", "lote": "", "validade": "", "unidade": "", "estoque_atual": null, "estoque_minimo": null, "disponivel": true, "link_drive": "", "nome_inci": "", "funcao": "", "notas": "", "fase": "", "ph_min": null, "ph_max": null, "temp_max": null, "concentracao_min": null, "concentracao_max": null}, {"id": 13, "nome": "OV Abacate", "categoria": "Óleos e Manteigas", "localizacao": "AP3", "fornecedor": "", "lote": "", "validade": "", "unidade": "", "estoque_atual": null, "estoque_minimo": null, "disponivel": true, "link_drive": "", "nome_inci": "", "funcao": "", "notas": "", "fase": "", "ph_min": null, "ph_max": null, "temp_max": null, "concentracao_min": null, "concentracao_max": null}, {"id": 14, "nome": "OV Argan Orgânico Marrocos", "categoria": "Óleos e Manteigas", "localizacao": "AP3", "fornecedor": "", "lote": "", "validade": "", "unidade": "", "estoque_atual": null, "estoque_minimo": null, "disponivel": true, "link_drive": "", "nome_inci": "", "funcao": "", "notas": "", "fase": "", "ph_min": null, "ph_max": null, "temp_max": null, "concentracao_min": null, "concentracao_max": null}, {"id": 15, "nome": "OV Neem", "categoria": "Óleos e Manteigas", "localizacao": "AP3", "fornecedor": "", "lote": "", "validade": "", "unidade": "", "estoque_atual": null, "estoque_minimo": null, "disponivel": true, "link_drive": "", "nome_inci": "", "funcao": "", "notas": "", "fase": "", "ph_min": null, "ph_max": null, "temp_max": null, "concentracao_min": null, "concentracao_max": null}, {"id": 16, "nome": "OV Abóbora Semente", "categoria": "Óleos e Manteigas", "localizacao": "AP3", "fornecedor": "", "lote": "", "validade": "", "unidade": "", "estoque_atual": null, "estoque_minimo": null, "disponivel": true, "link_drive": "", "nome_inci": "", "funcao": "", "notas": "", "fase": "", "ph_min": null, "ph_max": null, "temp_max": null, "concentracao_min": null, "concentracao_max": null}, {"id": 17, "nome": "Manteiga de Macadâmia", "categoria": "Óleos e Manteigas", "localizacao": "EP2", "fornecedor": "", "lote": "", "validade": "", "unidade": "", "estoque_atual": null, "estoque_minimo": null, "disponivel": true, "link_drive": "", "nome_inci": "", "funcao": "", "notas": "", "fase": "", "ph_min": null, "ph_max": null, "temp_max": null, "concentracao_min": null, "concentracao_max": null}, {"id": 18, "nome": "Manteiga de Cacau Natural", "categoria": "Óleos e Manteigas", "localizacao": "EP2", "fornecedor": "", "lote": "", "validade": "", "unidade": "", "estoque_atual": null, "estoque_minimo": null, "disponivel": true, "link_drive": "", "nome_inci": "", "funcao": "", "notas": "", "fase": "", "ph_min": null, "ph_max": null, "temp_max": null, "concentracao_min": null, "concentracao_max": null}, {"id": 19, "nome": "Manteiga de Manga", "categoria": "Óleos e Manteigas", "localizacao": "EP2", "fornecedor": "", "lote": "", "validade": "", "unidade": "", "estoque_atual": null, "estoque_minimo": null, "disponivel": true, "link_drive": "", "nome_inci": "", "funcao": "", "notas": "", "fase": "", "ph_min": null, "ph_max": null, "temp_max": null, "concentracao_min": null, "concentracao_max": null}, {"id": 20, "nome": "Manteiga de Andiroba", "categoria": "Óleos e Manteigas", "localizacao": "EP2", "fornecedor": "", "lote": "", "validade": "", "unidade": "", "estoque_atual": null, "estoque_minimo": null, "disponivel": true, "link_drive": "", "nome_inci": "", "funcao": "", "notas": "", "fase": "", "ph_min": null, "ph_max": null, "temp_max": null, "concentracao_min": null, "concentracao_max": null}, {"id": 21, "nome": "Manteiga de Cupuaçu", "categoria": "Óleos e Manteigas", "localizacao": "EP2", "fornecedor": "", "lote": "", "validade": "", "unidade": "", "estoque_atual": null, "estoque_minimo": null, "disponivel": true, "link_drive": "", "nome_inci": "", "funcao": "", "notas": "", "fase": "", "ph_min": null, "ph_max": null, "temp_max": null, "concentracao_min": null, "concentracao_max": null}, {"id": 22, "nome": "Manteiga de Coco", "categoria": "Óleos e Manteigas", "localizacao": "EP2", "fornecedor": "", "lote": "", "validade": "", "unidade": "", "estoque_atual": null, "estoque_minimo": null, "disponivel": true, "link_drive": "", "nome_inci": "", "funcao": "", "notas": "", "fase": "", "ph_min": null, "ph_max": null, "temp_max": null, "concentracao_min": null, "concentracao_max": null}, {"id": 23, "nome": "OV de Tamanu", "categoria": "Óleos e Manteigas", "localizacao": "AP3", "fornecedor": "", "lote": "", "validade": "", "unidade": "", "estoque_atual": null, "estoque_minimo": null, "disponivel": true, "link_drive": "", "nome_inci": "", "funcao": "", "notas": "", "fase": "", "ph_min": null, "ph_max": null, "temp_max": null, "concentracao_min": null, "concentracao_max": null}, {"id": 24, "nome": "OV de Açaí", "categoria": "Óleos e Manteigas", "localizacao": "AP3", "fornecedor": "", "lote": "", "validade": "", "unidade": "", "estoque_atual": null, "estoque_minimo": null, "disponivel": true, "link_drive": "", "nome_inci": "", "funcao": "", "notas": "", "fase": "", "ph_min": null, "ph_max": null, "temp_max": null, "concentracao_min": null, "concentracao_max": null}, {"id": 25, "nome": "OV de Jojoba Golden", "categoria": "Óleos e Manteigas", "localizacao": "AP3", "fornecedor": "", "lote": "", "validade": "", "unidade": "", "estoque_atual": null, "estoque_minimo": null, "disponivel": true, "link_drive": "", "nome_inci": "", "funcao": "", "notas": "", "fase": "", "ph_min": null, "ph_max": null, "temp_max": null, "concentracao_min": null, "concentracao_max": null}, {"id": 26, "nome": "OV de Semente de Uva", "categoria": "Óleos e Manteigas", "localizacao": "AP3", "fornecedor": "", "lote": "", "validade": "", "unidade": "", "estoque_atual": null, "estoque_minimo": null, "disponivel": true, "link_drive": "", "nome_inci": "", "funcao": "", "notas": "", "fase": "", "ph_min": null, "ph_max": null, "temp_max": null, "concentracao_min": null, "concentracao_max": null}, {"id": 27, "nome": "OV de Buriti Virgem", "categoria": "Óleos e Manteigas", "localizacao": "AP3", "fornecedor": "", "lote": "", "validade": "", "unidade": "", "estoque_atual": null, "estoque_minimo": null, "disponivel": true, "link_drive": "", "nome_inci": "", "funcao": "", "notas": "", "fase": "", "ph_min": null, "ph_max": null, "temp_max": null, "concentracao_min": null, "concentracao_max": null}, {"id": 28, "nome": "Óleo de CBA", "categoria": "Ativos e Tratamento", "localizacao": "AP3", "fornecedor": "", "lote": "", "validade": "", "unidade": "", "estoque_atual": null, "estoque_minimo": null, "disponivel": true, "link_drive": "", "nome_inci": "", "funcao": "", "notas": "", "fase": "", "ph_min": null, "ph_max": null, "temp_max": null, "concentracao_min": null, "concentracao_max": null}, {"id": 29, "nome": "Ácido Hialurônico em Pó", "categoria": "Ativos e Tratamento", "localizacao": "CF", "fornecedor": "", "lote": "", "validade": "", "unidade": "", "estoque_atual": null, "estoque_minimo": null, "disponivel": true, "link_drive": "", "nome_inci": "", "funcao": "", "notas": "", "fase": "", "ph_min": null, "ph_max": null, "temp_max": null, "concentracao_min": null, "concentracao_max": null}, {"id": 30, "nome": "Ácido Kójico", "categoria": "Ativos e Tratamento", "localizacao": "CF", "fornecedor": "", "lote": "", "validade": "", "unidade": "", "estoque_atual": null, "estoque_minimo": null, "disponivel": true, "link_drive": "", "nome_inci": "", "funcao": "", "notas": "", "fase": "", "ph_min": null, "ph_max": null, "temp_max": null, "concentracao_min": null, "concentracao_max": null}, {"id": 31, "nome": "Ácido Ferúlico", "categoria": "Ativos e Tratamento", "localizacao": "CF", "fornecedor": "", "lote": "", "validade": "", "unidade": "", "estoque_atual": null, "estoque_minimo": null, "disponivel": true, "link_drive": "", "nome_inci": "", "funcao": "", "notas": "", "fase": "", "ph_min": null, "ph_max": null, "temp_max": null, "concentracao_min": null, "concentracao_max": null}, {"id": 32, "nome": "Ácido Mandélico", "categoria": "Ativos e Tratamento", "localizacao": "CF", "fornecedor": "", "lote": "", "validade": "", "unidade": "", "estoque_atual": null, "estoque_minimo": null, "disponivel": true, "link_drive": "", "nome_inci": "", "funcao": "", "notas": "", "fase": "", "ph_min": null, "ph_max": null, "temp_max": null, "concentracao_min": null, "concentracao_max": null}, {"id": 33, "nome": "Alpha Tocoferol / Vitamina E", "categoria": "Ativos e Tratamento", "localizacao": "AP2", "fornecedor": "", "lote": "", "validade": "", "unidade": "", "estoque_atual": null, "estoque_minimo": null, "disponivel": true, "link_drive": "", "nome_inci": "", "funcao": "", "notas": "", "fase": "", "ph_min": null, "ph_max": null, "temp_max": null, "concentracao_min": null, "concentracao_max": null}, {"id": 34, "nome": "Phytosan", "categoria": "Ativos e Tratamento", "localizacao": "CF", "fornecedor": "", "lote": "", "validade": "", "unidade": "", "estoque_atual": null, "estoque_minimo": null, "disponivel": true, "link_drive": "", "nome_inci": "", "funcao": "", "notas": "", "fase": "", "ph_min": null, "ph_max": null, "temp_max": null, "concentracao_min": null, "concentracao_max": null}, {"id": 35, "nome": "Prorenew Complex", "categoria": "Ativos e Tratamento", "localizacao": "FALTA", "fornecedor": "", "lote": "", "validade": "", "unidade": "", "estoque_atual": null, "estoque_minimo": null, "disponivel": false, "link_drive": "", "nome_inci": "", "funcao": "", "notas": "", "fase": "", "ph_min": null, "ph_max": null, "temp_max": null, "concentracao_min": null, "concentracao_max": null}, {"id": 36, "nome": "Proteína Hidrolisada de Arroz", "categoria": "Ativos e Tratamento", "localizacao": "CF", "fornecedor": "", "lote": "", "validade": "", "unidade": "", "estoque_atual": null, "estoque_minimo": null, "disponivel": true, "link_drive": "", "nome_inci": "", "funcao": "", "notas": "", "fase": "", "ph_min": null, "ph_max": null, "temp_max": null, "concentracao_min": null, "concentracao_max": null}, {"id": 37, "nome": "B5 (Pantenol)", "categoria": "Ativos e Tratamento", "localizacao": "CF", "fornecedor": "", "lote": "", "validade": "", "unidade": "", "estoque_atual": null, "estoque_minimo": null, "disponivel": true, "link_drive": "", "nome_inci": "", "funcao": "", "notas": "", "fase": "", "ph_min": null, "ph_max": null, "temp_max": null, "concentracao_min": null, "concentracao_max": null}, {"id": 38, "nome": "Vitamina C Estável", "categoria": "Ativos e Tratamento", "localizacao": "CF", "fornecedor": "", "lote": "", "validade": "", "unidade": "", "estoque_atual": null, "estoque_minimo": null, "disponivel": true, "link_drive": "", "nome_inci": "", "funcao": "", "notas": "", "fase": "", "ph_min": null, "ph_max": null, "temp_max": null, "concentracao_min": null, "concentracao_max": null}, {"id": 39, "nome": "Esqualano de Cana de Açúcar", "categoria": "Ativos e Tratamento", "localizacao": "AP2.1", "fornecedor": "", "lote": "", "validade": "", "unidade": "", "estoque_atual": null, "estoque_minimo": null, "disponivel": true, "link_drive": "", "nome_inci": "", "funcao": "", "notas": "", "fase": "", "ph_min": null, "ph_max": null, "temp_max": null, "concentracao_min": null, "concentracao_max": null}, {"id": 40, "nome": "Niacinamida PC / Diacinamide", "categoria": "Ativos e Tratamento", "localizacao": "CF", "fornecedor": "", "lote": "", "validade": "", "unidade": "", "estoque_atual": null, "estoque_minimo": null, "disponivel": true, "link_drive": "", "nome_inci": "", "funcao": "", "notas": "", "fase": "", "ph_min": null, "ph_max": null, "temp_max": null, "concentracao_min": null, "concentracao_max": null}, {"id": 41, "nome": "Elastina Hidrolisada", "categoria": "Ativos e Tratamento", "localizacao": "CF", "fornecedor": "", "lote": "", "validade": "", "unidade": "", "estoque_atual": null, "estoque_minimo": null, "disponivel": true, "link_drive": "", "nome_inci": "", "funcao": "", "notas": "", "fase": "", "ph_min": null, "ph_max": null, "temp_max": null, "concentracao_min": null, "concentracao_max": null}, {"id": 42, "nome": "Proteína Hidrolisada de Trigo", "categoria": "Ativos e Tratamento", "localizacao": "CF", "fornecedor": "", "lote": "", "validade": "", "unidade": "", "estoque_atual": null, "estoque_minimo": null, "disponivel": true, "link_drive": "", "nome_inci": "", "funcao": "", "notas": "", "fase": "", "ph_min": null, "ph_max": null, "temp_max": null, "concentracao_min": null, "concentracao_max": null}, {"id": 43, "nome": "Seiva Sangue de Dragão", "categoria": "Ativos e Tratamento", "localizacao": "CF", "fornecedor": "", "lote": "", "validade": "", "unidade": "", "estoque_atual": null, "estoque_minimo": null, "disponivel": true, "link_drive": "", "nome_inci": "", "funcao": "", "notas": "", "fase": "", "ph_min": null, "ph_max": null, "temp_max": null, "concentracao_min": null, "concentracao_max": null}, {"id": 44, "nome": "Aveia Coloidal", "categoria": "Ativos e Tratamento", "localizacao": "EP1.1", "fornecedor": "", "lote": "", "validade": "", "unidade": "", "estoque_atual": null, "estoque_minimo": null, "disponivel": true, "link_drive": "", "nome_inci": "", "funcao": "", "notas": "", "fase": "", "ph_min": null, "ph_max": null, "temp_max": null, "concentracao_min": null, "concentracao_max": null}, {"id": 45, "nome": "OE Laranja Doce", "categoria": "Óleos Essenciais", "localizacao": "AP2", "fornecedor": "", "lote": "", "validade": "", "unidade": "", "estoque_atual": null, "estoque_minimo": null, "disponivel": true, "link_drive": "", "nome_inci": "", "funcao": "", "notas": "", "fase": "", "ph_min": null, "ph_max": null, "temp_max": null, "concentracao_min": null, "concentracao_max": null}, {"id": 46, "nome": "OE Bergamota Itália Reggio", "categoria": "Óleos Essenciais", "localizacao": "AP2", "fornecedor": "", "lote": "", "validade": "", "unidade": "", "estoque_atual": null, "estoque_minimo": null, "disponivel": true, "link_drive": "", "nome_inci": "", "funcao": "", "notas": "", "fase": "", "ph_min": null, "ph_max": null, "temp_max": null, "concentracao_min": null, "concentracao_max": null}, {"id": 47, "nome": "OE Hortelã Pimenta", "categoria": "Óleos Essenciais", "localizacao": "AP2", "fornecedor": "", "lote": "", "validade": "", "unidade": "", "estoque_atual": null, "estoque_minimo": null, "disponivel": true, "link_drive": "", "nome_inci": "", "funcao": "", "notas": "", "fase": "", "ph_min": null, "ph_max": null, "temp_max": null, "concentracao_min": null, "concentracao_max": null}, {"id": 48, "nome": "OE Gerânio do Egito", "categoria": "Óleos Essenciais", "localizacao": "AP2", "fornecedor": "", "lote": "", "validade": "", "unidade": "", "estoque_atual": null, "estoque_minimo": null, "disponivel": true, "link_drive": "", "nome_inci": "", "funcao": "", "notas": "", "fase": "", "ph_min": null, "ph_max": null, "temp_max": null, "concentracao_min": null, "concentracao_max": null}, {"id": 49, "nome": "OE Cedro Atlas", "categoria": "Óleos Essenciais", "localizacao": "AP2", "fornecedor": "", "lote": "", "validade": "", "unidade": "", "estoque_atual": null, "estoque_minimo": null, "disponivel": true, "link_drive": "", "nome_inci": "", "funcao": "", "notas": "", "fase": "", "ph_min": null, "ph_max": null, "temp_max": null, "concentracao_min": null, "concentracao_max": null}, {"id": 50, "nome": "OE Gengibre", "categoria": "Óleos Essenciais", "localizacao": "AP2", "fornecedor": "", "lote": "", "validade": "", "unidade": "", "estoque_atual": null, "estoque_minimo": null, "disponivel": true, "link_drive": "", "nome_inci": "", "funcao": "", "notas": "", "fase": "", "ph_min": null, "ph_max": null, "temp_max": null, "concentracao_min": null, "concentracao_max": null}, {"id": 51, "nome": "OE Limão Siciliano", "categoria": "Óleos Essenciais", "localizacao": "AP2", "fornecedor": "", "lote": "", "validade": "", "unidade": "", "estoque_atual": null, "estoque_minimo": null, "disponivel": true, "link_drive": "", "nome_inci": "", "funcao": "", "notas": "", "fase": "", "ph_min": null, "ph_max": null, "temp_max": null, "concentracao_min": null, "concentracao_max": null}, {"id": 52, "nome": "OE Lavanda", "categoria": "Óleos Essenciais", "localizacao": "AP2", "fornecedor": "", "lote": "", "validade": "", "unidade": "", "estoque_atual": null, "estoque_minimo": null, "disponivel": true, "link_drive": "", "nome_inci": "", "funcao": "", "notas": "", "fase": "", "ph_min": null, "ph_max": null, "temp_max": null, "concentracao_min": null, "concentracao_max": null}, {"id": 53, "nome": "OE de Alecrim", "categoria": "Óleos Essenciais", "localizacao": "AP2", "fornecedor": "", "lote": "", "validade": "", "unidade": "", "estoque_atual": null, "estoque_minimo": null, "disponivel": true, "link_drive": "", "nome_inci": "", "funcao": "", "notas": "", "fase": "", "ph_min": null, "ph_max": null, "temp_max": null, "concentracao_min": null, "concentracao_max": null}, {"id": 54, "nome": "OE Citronela", "categoria": "Óleos Essenciais", "localizacao": "AP2", "fornecedor": "", "lote": "", "validade": "", "unidade": "", "estoque_atual": null, "estoque_minimo": null, "disponivel": true, "link_drive": "", "nome_inci": "", "funcao": "", "notas": "", "fase": "", "ph_min": null, "ph_max": null, "temp_max": null, "concentracao_min": null, "concentracao_max": null}, {"id": 55, "nome": "OE Eucalipto Radiata", "categoria": "Óleos Essenciais", "localizacao": "AP2", "fornecedor": "", "lote": "", "validade": "", "unidade": "", "estoque_atual": null, "estoque_minimo": null, "disponivel": true, "link_drive": "", "nome_inci": "", "funcao": "", "notas": "", "fase": "", "ph_min": null, "ph_max": null, "temp_max": null, "concentracao_min": null, "concentracao_max": null}, {"id": 56, "nome": "OE Sândalo Amiris", "categoria": "Óleos Essenciais", "localizacao": "AP2", "fornecedor": "", "lote": "", "validade": "", "unidade": "", "estoque_atual": null, "estoque_minimo": null, "disponivel": true, "link_drive": "", "nome_inci": "", "funcao": "", "notas": "", "fase": "", "ph_min": null, "ph_max": null, "temp_max": null, "concentracao_min": null, "concentracao_max": null}, {"id": 57, "nome": "OE Capim Limão", "categoria": "Óleos Essenciais", "localizacao": "AP2", "fornecedor": "", "lote": "", "validade": "", "unidade": "", "estoque_atual": null, "estoque_minimo": null, "disponivel": true, "link_drive": "", "nome_inci": "", "funcao": "", "notas": "", "fase": "", "ph_min": null, "ph_max": null, "temp_max": null, "concentracao_min": null, "concentracao_max": null}, {"id": 58, "nome": "OE Tea Tree", "categoria": "Óleos Essenciais", "localizacao": "AP2", "fornecedor": "", "lote": "", "validade": "", "unidade": "", "estoque_atual": null, "estoque_minimo": null, "disponivel": true, "link_drive": "", "nome_inci": "", "funcao": "", "notas": "", "fase": "", "ph_min": null, "ph_max": null, "temp_max": null, "concentracao_min": null, "concentracao_max": null}, {"id": 59, "nome": "OE Erva Doce", "categoria": "Óleos Essenciais", "localizacao": "AP2", "fornecedor": "", "lote": "", "validade": "", "unidade": "", "estoque_atual": null, "estoque_minimo": null, "disponivel": true, "link_drive": "", "nome_inci": "", "funcao": "", "notas": "", "fase": "", "ph_min": null, "ph_max": null, "temp_max": null, "concentracao_min": null, "concentracao_max": null}, {"id": 60, "nome": "OE Patchouli", "categoria": "Óleos Essenciais", "localizacao": "AP2", "fornecedor": "", "lote": "", "validade": "", "unidade": "", "estoque_atual": null, "estoque_minimo": null, "disponivel": true, "link_drive": "", "nome_inci": "", "funcao": "", "notas": "", "fase": "", "ph_min": null, "ph_max": null, "temp_max": null, "concentracao_min": null, "concentracao_max": null}, {"id": 61, "nome": "OE Breu Branco", "categoria": "Óleos Essenciais", "localizacao": "AP2", "fornecedor": "", "lote": "", "validade": "", "unidade": "", "estoque_atual": null, "estoque_minimo": null, "disponivel": true, "link_drive": "", "nome_inci": "", "funcao": "", "notas": "", "fase": "", "ph_min": null, "ph_max": null, "temp_max": null, "concentracao_min": null, "concentracao_max": null}, {"id": 62, "nome": "OE Sálvia Sclarea", "categoria": "Óleos Essenciais", "localizacao": "AP2", "fornecedor": "", "lote": "", "validade": "", "unidade": "", "estoque_atual": null, "estoque_minimo": null, "disponivel": true, "link_drive": "", "nome_inci": "", "funcao": "", "notas": "", "fase": "", "ph_min": null, "ph_max": null, "temp_max": null, "concentracao_min": null, "concentracao_max": null}, {"id": 63, "nome": "OE Canela Cássia", "categoria": "Óleos Essenciais", "localizacao": "AP2", "fornecedor": "", "lote": "", "validade": "", "unidade": "", "estoque_atual": null, "estoque_minimo": null, "disponivel": true, "link_drive": "", "nome_inci": "", "funcao": "", "notas": "", "fase": "", "ph_min": null, "ph_max": null, "temp_max": null, "concentracao_min": null, "concentracao_max": null}, {"id": 64, "nome": "OE Jasmim", "categoria": "Óleos Essenciais", "localizacao": "AP2", "fornecedor": "", "lote": "", "validade": "", "unidade": "", "estoque_atual": null, "estoque_minimo": null, "disponivel": true, "link_drive": "", "nome_inci": "", "funcao": "", "notas": "", "fase": "", "ph_min": null, "ph_max": null, "temp_max": null, "concentracao_min": null, "concentracao_max": null}, {"id": 65, "nome": "OE Olíbano", "categoria": "Óleos Essenciais", "localizacao": "AP2", "fornecedor": "", "lote": "", "validade": "", "unidade": "", "estoque_atual": null, "estoque_minimo": null, "disponivel": true, "link_drive": "", "nome_inci": "", "funcao": "", "notas": "", "fase": "", "ph_min": null, "ph_max": null, "temp_max": null, "concentracao_min": null, "concentracao_max": null}, {"id": 66, "nome": "OE Cipreste", "categoria": "Óleos Essenciais", "localizacao": "AP2", "fornecedor": "", "lote": "", "validade": "", "unidade": "", "estoque_atual": null, "estoque_minimo": null, "disponivel": true, "link_drive": "", "nome_inci": "", "funcao": "", "notas": "", "fase": "", "ph_min": null, "ph_max": null, "temp_max": null, "concentracao_min": null, "concentracao_max": null}, {"id": 67, "nome": "OE Camomila Romana", "categoria": "Óleos Essenciais", "localizacao": "AP2", "fornecedor": "", "lote": "", "validade": "", "unidade": "", "estoque_atual": null, "estoque_minimo": null, "disponivel": true, "link_drive": "", "nome_inci": "", "funcao": "", "notas": "", "fase": "", "ph_min": null, "ph_max": null, "temp_max": null, "concentracao_min": null, "concentracao_max": null}, {"id": 68, "nome": "OE Petitgrain", "categoria": "Óleos Essenciais", "localizacao": "AP2", "fornecedor": "", "lote": "", "validade": "", "unidade": "", "estoque_atual": null, "estoque_minimo": null, "disponivel": true, "link_drive": "", "nome_inci": "", "funcao": "", "notas": "", "fase": "", "ph_min": null, "ph_max": null, "temp_max": null, "concentracao_min": null, "concentracao_max": null}, {"id": 69, "nome": "OE Palma Rosa", "categoria": "Óleos Essenciais", "localizacao": "AP2", "fornecedor": "", "lote": "", "validade": "", "unidade": "", "estoque_atual": null, "estoque_minimo": null, "disponivel": true, "link_drive": "", "nome_inci": "", "funcao": "", "notas": "", "fase": "", "ph_min": null, "ph_max": null, "temp_max": null, "concentracao_min": null, "concentracao_max": null}, {"id": 70, "nome": "Extrato Oleoso Mulateiro", "categoria": "Botânicos e Pós", "localizacao": "AP3.1", "fornecedor": "", "lote": "", "validade": "", "unidade": "", "estoque_atual": null, "estoque_minimo": null, "disponivel": true, "link_drive": "", "nome_inci": "", "funcao": "", "notas": "", "fase": "", "ph_min": null, "ph_max": null, "temp_max": null, "concentracao_min": null, "concentracao_max": null}, {"id": 71, "nome": "Extrato Oleoso de Cumaru", "categoria": "Botânicos e Pós", "localizacao": "AP3.1", "fornecedor": "", "lote": "", "validade": "", "unidade": "", "estoque_atual": null, "estoque_minimo": null, "disponivel": true, "link_drive": "", "nome_inci": "", "funcao": "", "notas": "", "fase": "", "ph_min": null, "ph_max": null, "temp_max": null, "concentracao_min": null, "concentracao_max": null}, {"id": 72, "nome": "Extrato Oleoso de Pistache", "categoria": "Botânicos e Pós", "localizacao": "AP3.1", "fornecedor": "", "lote": "", "validade": "", "unidade": "", "estoque_atual": null, "estoque_minimo": null, "disponivel": true, "link_drive": "", "nome_inci": "", "funcao": "", "notas": "", "fase": "", "ph_min": null, "ph_max": null, "temp_max": null, "concentracao_min": null, "concentracao_max": null}, {"id": 73, "nome": "Extrato Seco Solúvel de Manga", "categoria": "Botânicos e Pós", "localizacao": "EP1.1", "fornecedor": "", "lote": "", "validade": "", "unidade": "", "estoque_atual": null, "estoque_minimo": null, "disponivel": true, "link_drive": "", "nome_inci": "", "funcao": "", "notas": "", "fase": "", "ph_min": null, "ph_max": null, "temp_max": null, "concentracao_min": null, "concentracao_max": null}, {"id": 74, "nome": "Extrato Seco Solúvel de Kiwi", "categoria": "Botânicos e Pós", "localizacao": "EP1.1", "fornecedor": "", "lote": "", "validade": "", "unidade": "", "estoque_atual": null, "estoque_minimo": null, "disponivel": true, "link_drive": "", "nome_inci": "", "funcao": "", "notas": "", "fase": "", "ph_min": null, "ph_max": null, "temp_max": null, "concentracao_min": null, "concentracao_max": null}, {"id": 75, "nome": "Extrato Oleoso Jambu", "categoria": "Botânicos e Pós", "localizacao": "AP3.1", "fornecedor": "", "lote": "", "validade": "", "unidade": "", "estoque_atual": null, "estoque_minimo": null, "disponivel": true, "link_drive": "", "nome_inci": "", "funcao": "", "notas": "", "fase": "", "ph_min": null, "ph_max": null, "temp_max": null, "concentracao_min": null, "concentracao_max": null}, {"id": 76, "nome": "Extrato Glicerinado de Aloe Vera", "categoria": "Botânicos e Pós", "localizacao": "CF", "fornecedor": "", "lote": "", "validade": "", "unidade": "", "estoque_atual": null, "estoque_minimo": null, "disponivel": true, "link_drive": "", "nome_inci": "", "funcao": "", "notas": "", "fase": "", "ph_min": null, "ph_max": null, "temp_max": null, "concentracao_min": null, "concentracao_max": null}, {"id": 77, "nome": "Extrato Glicólico de Marcela", "categoria": "Botânicos e Pós", "localizacao": "CF", "fornecedor": "", "lote": "", "validade": "", "unidade": "", "estoque_atual": null, "estoque_minimo": null, "disponivel": true, "link_drive": "", "nome_inci": "", "funcao": "", "notas": "", "fase": "", "ph_min": null, "ph_max": null, "temp_max": null, "concentracao_min": null, "concentracao_max": null}, {"id": 78, "nome": "Argila Branca", "categoria": "Botânicos e Pós", "localizacao": "EP3.1", "fornecedor": "", "lote": "", "validade": "", "unidade": "", "estoque_atual": null, "estoque_minimo": null, "disponivel": true, "link_drive": "", "nome_inci": "", "funcao": "", "notas": "", "fase": "", "ph_min": null, "ph_max": null, "temp_max": null, "concentracao_min": null, "concentracao_max": null}, {"id": 79, "nome": "Pó de Araruta", "categoria": "Botânicos e Pós", "localizacao": "EP2", "fornecedor": "", "lote": "", "validade": "", "unidade": "", "estoque_atual": null, "estoque_minimo": null, "disponivel": true, "link_drive": "", "nome_inci": "", "funcao": "", "notas": "", "fase": "", "ph_min": null, "ph_max": null, "temp_max": null, "concentracao_min": null, "concentracao_max": null}, {"id": 80, "nome": "Carvão Ativado", "categoria": "Botânicos e Pós", "localizacao": "EP1", "fornecedor": "", "lote": "", "validade": "", "unidade": "", "estoque_atual": null, "estoque_minimo": null, "disponivel": true, "link_drive": "", "nome_inci": "", "funcao": "", "notas": "", "fase": "", "ph_min": null, "ph_max": null, "temp_max": null, "concentracao_min": null, "concentracao_max": null}, {"id": 81, "nome": "Argila Verde Kaolin", "categoria": "Botânicos e Pós", "localizacao": "EP1.1", "fornecedor": "", "lote": "", "validade": "", "unidade": "", "estoque_atual": null, "estoque_minimo": null, "disponivel": true, "link_drive": "", "nome_inci": "", "funcao": "", "notas": "", "fase": "", "ph_min": null, "ph_max": null, "temp_max": null, "concentracao_min": null, "concentracao_max": null}, {"id": 82, "nome": "Pó de Juá", "categoria": "Botânicos e Pós", "localizacao": "EP1.1", "fornecedor": "", "lote": "", "validade": "", "unidade": "", "estoque_atual": null, "estoque_minimo": null, "disponivel": true, "link_drive": "", "nome_inci": "", "funcao": "", "notas": "", "fase": "", "ph_min": null, "ph_max": null, "temp_max": null, "concentracao_min": null, "concentracao_max": null}, {"id": 83, "nome": "Aloe Vera Pó", "categoria": "Botânicos e Pós", "localizacao": "EP1.1", "fornecedor": "", "lote": "", "validade": "", "unidade": "", "estoque_atual": null, "estoque_minimo": null, "disponivel": true, "link_drive": "", "nome_inci": "", "funcao": "", "notas": "", "fase": "", "ph_min": null, "ph_max": null, "temp_max": null, "concentracao_min": null, "concentracao_max": null}, {"id": 84, "nome": "Hidrolato Capim Limão", "categoria": "Fase Aquosa", "localizacao": "CF", "fornecedor": "", "lote": "", "validade": "", "unidade": "", "estoque_atual": null, "estoque_minimo": null, "disponivel": true, "link_drive": "", "nome_inci": "", "funcao": "", "notas": "", "fase": "", "ph_min": null, "ph_max": null, "temp_max": null, "concentracao_min": null, "concentracao_max": null}, {"id": 85, "nome": "Hidrolato de Tea Tree Orgânico", "categoria": "Fase Aquosa", "localizacao": "CF", "fornecedor": "", "lote": "", "validade": "", "unidade": "", "estoque_atual": null, "estoque_minimo": null, "disponivel": true, "link_drive": "", "nome_inci": "", "funcao": "", "notas": "", "fase": "", "ph_min": null, "ph_max": null, "temp_max": null, "concentracao_min": null, "concentracao_max": null}, {"id": 86, "nome": "Hidrolato de Camomila", "categoria": "Fase Aquosa", "localizacao": "CF", "fornecedor": "", "lote": "", "validade": "", "unidade": "", "estoque_atual": null, "estoque_minimo": null, "disponivel": true, "link_drive": "", "nome_inci": "", "funcao": "", "notas": "", "fase": "", "ph_min": null, "ph_max": null, "temp_max": null, "concentracao_min": null, "concentracao_max": null}, {"id": 87, "nome": "Hidrolato Orgânico de Alecrim", "categoria": "Fase Aquosa", "localizacao": "CF", "fornecedor": "", "lote": "", "validade": "", "unidade": "", "estoque_atual": null, "estoque_minimo": null, "disponivel": true, "link_drive": "", "nome_inci": "", "funcao": "", "notas": "", "fase": "", "ph_min": null, "ph_max": null, "temp_max": null, "concentracao_min": null, "concentracao_max": null}, {"id": 88, "nome": "Hidrolato de Citronela", "categoria": "Fase Aquosa", "localizacao": "CF", "fornecedor": "", "lote": "", "validade": "", "unidade": "", "estoque_atual": null, "estoque_minimo": null, "disponivel": true, "link_drive": "", "nome_inci": "", "funcao": "", "notas": "", "fase": "", "ph_min": null, "ph_max": null, "temp_max": null, "concentracao_min": null, "concentracao_max": null}, {"id": 89, "nome": "Hidrolato de Rosas", "categoria": "Fase Aquosa", "localizacao": "CF", "fornecedor": "", "lote": "", "validade": "", "unidade": "", "estoque_atual": null, "estoque_minimo": null, "disponivel": true, "link_drive": "", "nome_inci": "", "funcao": "", "notas": "", "fase": "", "ph_min": null, "ph_max": null, "temp_max": null, "concentracao_min": null, "concentracao_max": null}, {"id": 90, "nome": "Glicerina Vegetal Bidestilada", "categoria": "Fase Aquosa", "localizacao": "EP2", "fornecedor": "", "lote": "", "validade": "", "unidade": "", "estoque_atual": null, "estoque_minimo": null, "disponivel": true, "link_drive": "", "nome_inci": "", "funcao": "", "notas": "", "fase": "", "ph_min": null, "ph_max": null, "temp_max": null, "concentracao_min": null, "concentracao_max": null}, {"id": 91, "nome": "Vinagre de Fruta Maçã", "categoria": "Fase Aquosa", "localizacao": "CF", "fornecedor": "", "lote": "", "validade": "", "unidade": "", "estoque_atual": null, "estoque_minimo": null, "disponivel": true, "link_drive": "", "nome_inci": "", "funcao": "", "notas": "", "fase": "", "ph_min": null, "ph_max": null, "temp_max": null, "concentracao_min": null, "concentracao_max": null}, {"id": 92, "nome": "Coco Glucoside", "categoria": "Tensoativos", "localizacao": "EP2.1", "fornecedor": "", "lote": "", "validade": "", "unidade": "", "estoque_atual": null, "estoque_minimo": null, "disponivel": true, "link_drive": "", "nome_inci": "", "funcao": "", "notas": "", "fase": "", "ph_min": null, "ph_max": null, "temp_max": null, "concentracao_min": null, "concentracao_max": null}, {"id": 93, "nome": "Decil Poliglucosideo", "categoria": "Tensoativos", "localizacao": "EP2.1", "fornecedor": "", "lote": "", "validade": "", "unidade": "", "estoque_atual": null, "estoque_minimo": null, "disponivel": true, "link_drive": "", "nome_inci": "", "funcao": "", "notas": "", "fase": "", "ph_min": null, "ph_max": null, "temp_max": null, "concentracao_min": null, "concentracao_max": null}, {"id": 94, "nome": "Lauril Líquido de Coco", "categoria": "Tensoativos", "localizacao": "EP2.1", "fornecedor": "", "lote": "", "validade": "", "unidade": "", "estoque_atual": null, "estoque_minimo": null, "disponivel": true, "link_drive": "", "nome_inci": "", "funcao": "", "notas": "", "fase": "", "ph_min": null, "ph_max": null, "temp_max": null, "concentracao_min": null, "concentracao_max": null}, {"id": 95, "nome": "SCI 85%", "categoria": "Tensoativos", "localizacao": "EP2.1", "fornecedor": "", "lote": "", "validade": "", "unidade": "", "estoque_atual": null, "estoque_minimo": null, "disponivel": true, "link_drive": "", "nome_inci": "", "funcao": "", "notas": "", "fase": "", "ph_min": null, "ph_max": null, "temp_max": null, "concentracao_min": null, "concentracao_max": null}, {"id": 96, "nome": "SLSA", "categoria": "Tensoativos", "localizacao": "EP2.1", "fornecedor": "", "lote": "", "validade": "", "unidade": "", "estoque_atual": null, "estoque_minimo": null, "disponivel": true, "link_drive": "", "nome_inci": "", "funcao": "", "notas": "", "fase": "", "ph_min": null, "ph_max": null, "temp_max": null, "concentracao_min": null, "concentracao_max": null}, {"id": 97, "nome": "Olivem 300", "categoria": "Emulsionantes e Ceras", "localizacao": "EP2", "fornecedor": "", "lote": "", "validade": "", "unidade": "", "estoque_atual": null, "estoque_minimo": null, "disponivel": true, "link_drive": "", "nome_inci": "", "funcao": "", "notas": "", "fase": "", "ph_min": null, "ph_max": null, "temp_max": null, "concentracao_min": null, "concentracao_max": null}, {"id": 98, "nome": "Cera de Candelila", "categoria": "Emulsionantes e Ceras", "localizacao": "EP2", "fornecedor": "", "lote": "", "validade": "", "unidade": "", "estoque_atual": null, "estoque_minimo": null, "disponivel": true, "link_drive": "", "nome_inci": "", "funcao": "", "notas": "", "fase": "", "ph_min": null, "ph_max": null, "temp_max": null, "concentracao_min": null, "concentracao_max": null}, {"id": 99, "nome": "Cera de Carnaúba", "categoria": "Emulsionantes e Ceras", "localizacao": "EP2", "fornecedor": "", "lote": "", "validade": "", "unidade": "", "estoque_atual": null, "estoque_minimo": null, "disponivel": true, "link_drive": "", "nome_inci": "", "funcao": "", "notas": "", "fase": "", "ph_min": null, "ph_max": null, "temp_max": null, "concentracao_min": null, "concentracao_max": null}, {"id": 100, "nome": "Estearato de Glicerila", "categoria": "Emulsionantes e Ceras", "localizacao": "EP2.1", "fornecedor": "", "lote": "", "validade": "", "unidade": "", "estoque_atual": null, "estoque_minimo": null, "disponivel": true, "link_drive": "", "nome_inci": "", "funcao": "", "notas": "", "fase": "", "ph_min": null, "ph_max": null, "temp_max": null, "concentracao_min": null, "concentracao_max": null}, {"id": 101, "nome": "Álcool Cetílico", "categoria": "Emulsionantes e Ceras", "localizacao": "EP2.1", "fornecedor": "", "lote": "", "validade": "", "unidade": "", "estoque_atual": null, "estoque_minimo": null, "disponivel": true, "link_drive": "", "nome_inci": "", "funcao": "", "notas": "", "fase": "", "ph_min": null, "ph_max": null, "temp_max": null, "concentracao_min": null, "concentracao_max": null}, {"id": 102, "nome": "Cera de Soja", "categoria": "Emulsionantes e Ceras", "localizacao": "EP2", "fornecedor": "", "lote": "", "validade": "", "unidade": "", "estoque_atual": null, "estoque_minimo": null, "disponivel": true, "link_drive": "", "nome_inci": "", "funcao": "", "notas": "", "fase": "", "ph_min": null, "ph_max": null, "temp_max": null, "concentracao_min": null, "concentracao_max": null}, {"id": 103, "nome": "Ácido Esteárico Vegetal", "categoria": "Emulsionantes e Ceras", "localizacao": "EP2", "fornecedor": "", "lote": "", "validade": "", "unidade": "", "estoque_atual": null, "estoque_minimo": null, "disponivel": true, "link_drive": "", "nome_inci": "", "funcao": "", "notas": "", "fase": "", "ph_min": null, "ph_max": null, "temp_max": null, "concentracao_min": null, "concentracao_max": null}, {"id": 104, "nome": "BTMS 25", "categoria": "Emulsionantes e Ceras", "localizacao": "EP2.1", "fornecedor": "", "lote": "", "validade": "", "unidade": "", "estoque_atual": null, "estoque_minimo": null, "disponivel": true, "link_drive": "", "nome_inci": "", "funcao": "", "notas": "", "fase": "", "ph_min": null, "ph_max": null, "temp_max": null, "concentracao_min": null, "concentracao_max": null}, {"id": 105, "nome": "Varisoft EQ 65", "categoria": "Emulsionantes e Ceras", "localizacao": "EP2.1", "fornecedor": "", "lote": "", "validade": "", "unidade": "", "estoque_atual": null, "estoque_minimo": null, "disponivel": true, "link_drive": "", "nome_inci": "", "funcao": "", "notas": "", "fase": "", "ph_min": null, "ph_max": null, "temp_max": null, "concentracao_min": null, "concentracao_max": null}, {"id": 106, "nome": "Caprilato de Glicerila", "categoria": "Aditivos e Conservantes", "localizacao": "AP2.1", "fornecedor": "", "lote": "", "validade": "", "unidade": "", "estoque_atual": null, "estoque_minimo": null, "disponivel": true, "link_drive": "", "nome_inci": "", "funcao": "", "notas": "", "fase": "", "ph_min": null, "ph_max": null, "temp_max": null, "concentracao_min": null, "concentracao_max": null}, {"id": 107, "nome": "Conservante Spectrastat", "categoria": "Aditivos e Conservantes", "localizacao": "AP2", "fornecedor": "", "lote": "", "validade": "", "unidade": "", "estoque_atual": null, "estoque_minimo": null, "disponivel": true, "link_drive": "", "nome_inci": "", "funcao": "", "notas": "", "fase": "", "ph_min": null, "ph_max": null, "temp_max": null, "concentracao_min": null, "concentracao_max": null}, {"id": 108, "nome": "Geogard ECT", "categoria": "Aditivos e Conservantes", "localizacao": "AP2.1", "fornecedor": "", "lote": "", "validade": "", "unidade": "", "estoque_atual": null, "estoque_minimo": null, "disponivel": true, "link_drive": "", "nome_inci": "", "funcao": "", "notas": "", "fase": "", "ph_min": null, "ph_max": null, "temp_max": null, "concentracao_min": null, "concentracao_max": null}, {"id": 109, "nome": "Óleo Resina de Alecrim 8%", "categoria": "Aditivos e Conservantes", "localizacao": "AP2.1", "fornecedor": "", "lote": "", "validade": "", "unidade": "", "estoque_atual": null, "estoque_minimo": null, "disponivel": true, "link_drive": "", "nome_inci": "", "funcao": "", "notas": "", "fase": "", "ph_min": null, "ph_max": null, "temp_max": null, "concentracao_min": null, "concentracao_max": null}, {"id": 110, "nome": "Lactato de Sódio", "categoria": "Aditivos e Conservantes", "localizacao": "CF", "fornecedor": "", "lote": "", "validade": "", "unidade": "", "estoque_atual": null, "estoque_minimo": null, "disponivel": true, "link_drive": "", "nome_inci": "", "funcao": "", "notas": "", "fase": "", "ph_min": null, "ph_max": null, "temp_max": null, "concentracao_min": null, "concentracao_max": null}, {"id": 111, "nome": "Sorbitol 70%", "categoria": "Aditivos e Conservantes", "localizacao": "EP2.1", "fornecedor": "", "lote": "", "validade": "", "unidade": "", "estoque_atual": null, "estoque_minimo": null, "disponivel": true, "link_drive": "", "nome_inci": "", "funcao": "", "notas": "", "fase": "", "ph_min": null, "ph_max": null, "temp_max": null, "concentracao_min": null, "concentracao_max": null}, {"id": 112, "nome": "EDTA Dissódico", "categoria": "Aditivos e Conservantes", "localizacao": "EP1.1", "fornecedor": "", "lote": "", "validade": "", "unidade": "", "estoque_atual": null, "estoque_minimo": null, "disponivel": true, "link_drive": "", "nome_inci": "", "funcao": "", "notas": "", "fase": "", "ph_min": null, "ph_max": null, "temp_max": null, "concentracao_min": null, "concentracao_max": null}, {"id": 113, "nome": "Dry Flo Pure", "categoria": "Aditivos e Conservantes", "localizacao": "EP1", "fornecedor": "", "lote": "", "validade": "", "unidade": "", "estoque_atual": null, "estoque_minimo": null, "disponivel": true, "link_drive": "", "nome_inci": "", "funcao": "", "notas": "", "fase": "", "ph_min": null, "ph_max": null, "temp_max": null, "concentracao_min": null, "concentracao_max": null}, {"id": 114, "nome": "Goma Xantana", "categoria": "Aditivos e Conservantes", "localizacao": "EP2", "fornecedor": "", "lote": "", "validade": "", "unidade": "", "estoque_atual": null, "estoque_minimo": null, "disponivel": true, "link_drive": "", "nome_inci": "", "funcao": "", "notas": "", "fase": "", "ph_min": null, "ph_max": null, "temp_max": null, "concentracao_min": null, "concentracao_max": null}, {"id": 115, "nome": "Dióxido de Titânio", "categoria": "Aditivos e Conservantes", "localizacao": "EP1.1", "fornecedor": "", "lote": "", "validade": "", "unidade": "", "estoque_atual": null, "estoque_minimo": null, "disponivel": true, "link_drive": "", "nome_inci": "", "funcao": "", "notas": "", "fase": "", "ph_min": null, "ph_max": null, "temp_max": null, "concentracao_min": null, "concentracao_max": null}, {"id": 116, "nome": "Ácido Cítrico Anidro", "categoria": "Aditivos e Conservantes", "localizacao": "EP1.1", "fornecedor": "", "lote": "", "validade": "", "unidade": "", "estoque_atual": null, "estoque_minimo": null, "disponivel": true, "link_drive": "", "nome_inci": "", "funcao": "", "notas": "", "fase": "", "ph_min": null, "ph_max": null, "temp_max": null, "concentracao_min": null, "concentracao_max": null}, {"id": 117, "nome": "Sorbato de Potássio", "categoria": "Aditivos e Conservantes", "localizacao": "EP1", "fornecedor": "", "lote": "", "validade": "", "unidade": "", "estoque_atual": null, "estoque_minimo": null, "disponivel": true, "link_drive": "", "nome_inci": "", "funcao": "", "notas": "", "fase": "", "ph_min": null, "ph_max": null, "temp_max": null, "concentracao_min": null, "concentracao_max": null}, {"id": 118, "nome": "Óxido de Zinco", "categoria": "Aditivos e Conservantes", "localizacao": "EP1.1", "fornecedor": "", "lote": "", "validade": "", "unidade": "", "estoque_atual": null, "estoque_minimo": null, "disponivel": true, "link_drive": "", "nome_inci": "", "funcao": "", "notas": "", "fase": "", "ph_min": null, "ph_max": null, "temp_max": null, "concentracao_min": null, "concentracao_max": null}, {"id": 119, "nome": "Gluconato de Sódio", "categoria": "Aditivos e Conservantes", "localizacao": "EP1", "fornecedor": "", "lote": "", "validade": "", "unidade": "", "estoque_atual": null, "estoque_minimo": null, "disponivel": true, "link_drive": "", "nome_inci": "", "funcao": "", "notas": "", "fase": "", "ph_min": null, "ph_max": null, "temp_max": null, "concentracao_min": null, "concentracao_max": null}, {"id": 120, "nome": "Carbonato de Sódio", "categoria": "Aditivos e Conservantes", "localizacao": "EP1.1", "fornecedor": "", "lote": "", "validade": "", "unidade": "", "estoque_atual": null, "estoque_minimo": null, "disponivel": true, "link_drive": "", "nome_inci": "", "funcao": "", "notas": "", "fase": "", "ph_min": null, "ph_max": null, "temp_max": null, "concentracao_min": null, "concentracao_max": null}, {"id": 121, "nome": "HPMC", "categoria": "Aditivos e Conservantes", "localizacao": "EP1.1", "fornecedor": "", "lote": "", "validade": "", "unidade": "", "estoque_atual": null, "estoque_minimo": null, "disponivel": true, "link_drive": "", "nome_inci": "", "funcao": "", "notas": "", "fase": "", "ph_min": null, "ph_max": null, "temp_max": null, "concentracao_min": null, "concentracao_max": null}, {"id": 122, "nome": "Nipaguard SCE", "categoria": "Aditivos e Conservantes", "localizacao": "FALTA", "fornecedor": "", "lote": "", "validade": "", "unidade": "", "estoque_atual": null, "estoque_minimo": null, "disponivel": false, "link_drive": "", "nome_inci": "", "funcao": "", "notas": "", "fase": "", "ph_min": null, "ph_max": null, "temp_max": null, "concentracao_min": null, "concentracao_max": null}, {"id": 123, "nome": "Sulfato de Magnésio", "categoria": "Aditivos e Conservantes", "localizacao": "EP2", "fornecedor": "", "lote": "", "validade": "", "unidade": "", "estoque_atual": null, "estoque_minimo": null, "disponivel": true, "link_drive": "", "nome_inci": "", "funcao": "", "notas": "", "fase": "", "ph_min": null, "ph_max": null, "temp_max": null, "concentracao_min": null, "concentracao_max": null}, {"id": 124, "nome": "Essência de Maracujá", "categoria": "Fragrâncias", "localizacao": "AP2", "fornecedor": "", "lote": "", "validade": "", "unidade": "", "estoque_atual": null, "estoque_minimo": null, "disponivel": true, "link_drive": "", "nome_inci": "", "funcao": "", "notas": "", "fase": "", "ph_min": null, "ph_max": null, "temp_max": null, "concentracao_min": null, "concentracao_max": null}, {"id": 125, "nome": "Essência de Jasmim", "categoria": "Fragrâncias", "localizacao": "AP2", "fornecedor": "", "lote": "", "validade": "", "unidade": "", "estoque_atual": null, "estoque_minimo": null, "disponivel": true, "link_drive": "", "nome_inci": "", "funcao": "", "notas": "", "fase": "", "ph_min": null, "ph_max": null, "temp_max": null, "concentracao_min": null, "concentracao_max": null}, {"id": 126, "nome": "BTMS 25 (dup)", "categoria": "Emulsionantes e Ceras", "localizacao": "EP2.1", "fornecedor": "", "lote": "", "validade": "", "unidade": "", "estoque_atual": null, "estoque_minimo": null, "disponivel": true, "link_drive": "", "nome_inci": "", "funcao": "", "notas": "", "fase": "", "ph_min": null, "ph_max": null, "temp_max": null, "concentracao_min": null, "concentracao_max": null}, {"id": 127, "nome": "Varisoft EQ 65 (dup)", "categoria": "Emulsionantes e Ceras", "localizacao": "EP2.1", "fornecedor": "", "lote": "", "validade": "", "unidade": "", "estoque_atual": null, "estoque_minimo": null, "disponivel": true, "link_drive": "", "nome_inci": "", "funcao": "", "notas": "", "fase": "", "ph_min": null, "ph_max": null, "temp_max": null, "concentracao_min": null, "concentracao_max": null}, {"id": 128, "nome": "Cetiol Ultimate", "categoria": "Emulsionantes e Ceras", "localizacao": "AP2", "fornecedor": "", "lote": "", "validade": "", "unidade": "", "estoque_atual": null, "estoque_minimo": null, "disponivel": true, "link_drive": "", "nome_inci": "", "funcao": "", "notas": "", "fase": "", "ph_min": null, "ph_max": null, "temp_max": null, "concentracao_min": null, "concentracao_max": null}, {"id": 129, "nome": "Caprilato de Glicerila (dup)", "categoria": "Aditivos e Conservantes", "localizacao": "AP2.1", "fornecedor": "", "lote": "", "validade": "", "unidade": "", "estoque_atual": null, "estoque_minimo": null, "disponivel": true, "link_drive": "", "nome_inci": "", "funcao": "", "notas": "", "fase": "", "ph_min": null, "ph_max": null, "temp_max": null, "concentracao_min": null, "concentracao_max": null}, {"id": 148, "nome": "Alúmen de Potássio", "categoria": "Aditivos e Conservantes", "localizacao": "EP1.1", "fornecedor": "", "lote": "", "validade": "", "unidade": "", "estoque_atual": null, "estoque_minimo": null, "disponivel": true, "link_drive": "", "nome_inci": "", "funcao": "", "notas": "", "fase": "", "ph_min": null, "ph_max": null, "temp_max": null, "concentracao_min": null, "concentracao_max": null}, {"id": 149, "nome": "Citrato de Trietila", "categoria": "Aditivos e Conservantes", "localizacao": "AP2", "fornecedor": "", "lote": "", "validade": "", "unidade": "", "estoque_atual": null, "estoque_minimo": null, "disponivel": true, "link_drive": "", "nome_inci": "", "funcao": "", "notas": "", "fase": "", "ph_min": null, "ph_max": null, "temp_max": null, "concentracao_min": null, "concentracao_max": null}, {"id": 150, "nome": "OV Castanha (Geladeira)", "categoria": "Óleos e Manteigas", "localizacao": "GELADEIRA", "fornecedor": "Fornecedor X", "lote": "L123", "validade": "2027-01-01", "unidade": "g", "estoque_atual": 500, "estoque_minimo": null, "disponivel": true, "link_drive": "", "nome_inci": "", "funcao": "", "notas": "Entrada recente", "fase": "", "ph_min": null, "ph_max": null, "temp_max": null, "concentracao_min": null, "concentracao_max": null}, {"id": 151, "nome": "Prata Coloidal 20ppm", "categoria": "Ativos e Tratamento", "localizacao": "GELADEIRA", "fornecedor": "AMAZON", "lote": "", "validade": "", "unidade": "ml", "estoque_atual": 500, "estoque_minimo": null, "disponivel": true, "link_drive": "", "nome_inci": "", "funcao": "", "notas": "Entrada recente", "fase": "", "ph_min": null, "ph_max": null, "temp_max": null, "concentracao_min": null, "concentracao_max": null}, {"id": 152, "nome": "Ouro Coloidal", "categoria": "Ativos e Tratamento", "localizacao": "GELADEIRA", "fornecedor": "AMAZON", "lote": "", "validade": "", "unidade": "ml", "estoque_atual": 500, "estoque_minimo": null, "disponivel": true, "link_drive": "", "nome_inci": "", "funcao": "", "notas": "Entrada recente", "fase": "", "ph_min": null, "ph_max": null, "temp_max": null, "concentracao_min": null, "concentracao_max": null}, {"id": 153, "nome": "Cobre Coloidal", "categoria": "Ativos e Tratamento", "localizacao": "GELADEIRA", "fornecedor": "AMAZON", "lote": "", "validade": "", "unidade": "ml", "estoque_atual": 500, "estoque_minimo": null, "disponivel": true, "link_drive": "", "nome_inci": "", "funcao": "", "notas": "Entrada recente", "fase": "", "ph_min": null, "ph_max": null, "temp_max": null, "concentracao_min": null, "concentracao_max": null}, {"id": 154, "nome": "Óleo de Mamona", "categoria": "Óleos e Manteigas", "localizacao": "AP3", "fornecedor": "MERCADO LIVRE", "lote": "109H24A/29193", "validade": "2026-10-23", "unidade": "ml", "estoque_atual": 1000, "estoque_minimo": null, "disponivel": true, "link_drive": "", "nome_inci": "", "funcao": "", "notas": "Entrada recente", "fase": "", "ph_min": null, "ph_max": null, "temp_max": null, "concentracao_min": null, "concentracao_max": null}, {"id": 155, "nome": "Extrato de Aveia", "categoria": "Botânicos e Pós", "localizacao": "GELADEIRA", "fornecedor": "MERCADO LIVRE", "lote": "1911", "validade": "2026-12-01", "unidade": "ml", "estoque_atual": 1000, "estoque_minimo": null, "disponivel": true, "link_drive": "", "nome_inci": "", "funcao": "", "notas": "Entrada recente", "fase": "", "ph_min": null, "ph_max": null, "temp_max": null, "concentracao_min": null, "concentracao_max": null}, {"id": 156, "nome": "Extrato de Jaborandi (lote 3009)", "categoria": "Botânicos e Pós", "localizacao": "GELADEIRA", "fornecedor": "MERCADO LIVRE", "lote": "3009", "validade": "2026-09-01", "unidade": "ml", "estoque_atual": 1000, "estoque_minimo": null, "disponivel": true, "link_drive": "", "nome_inci": "", "funcao": "", "notas": "Entrada recente", "fase": "", "ph_min": null, "ph_max": null, "temp_max": null, "concentracao_min": null, "concentracao_max": null}, {"id": 157, "nome": "Extrato de Jaborandi (lote 1311)", "categoria": "Botânicos e Pós", "localizacao": "GELADEIRA", "fornecedor": "MERCADO LIVRE", "lote": "1311", "validade": "2026-11-01", "unidade": "ml", "estoque_atual": 1000, "estoque_minimo": null, "disponivel": true, "link_drive": "", "nome_inci": "", "funcao": "", "notas": "Entrada recente", "fase": "", "ph_min": null, "ph_max": null, "temp_max": null, "concentracao_min": null, "concentracao_max": null}, {"id": 158, "nome": "Extrato Glicólico de Centella Asiática", "categoria": "Botânicos e Pós", "localizacao": "GELADEIRA", "fornecedor": "MERCADO LIVRE", "lote": "", "validade": "2028-02-01", "unidade": "ml", "estoque_atual": 200, "estoque_minimo": null, "disponivel": true, "link_drive": "", "nome_inci": "", "funcao": "", "notas": "Entrada recente", "fase": "", "ph_min": null, "ph_max": null, "temp_max": null, "concentracao_min": null, "concentracao_max": null}, {"id": 159, "nome": "Cetiol Ultimate (novo lote)", "categoria": "Emulsionantes e Ceras", "localizacao": "AP2", "fornecedor": "ENGENHARIA DAS ESSENCIAS", "lote": "EE2512", "validade": "2026-12-01", "unidade": "ml", "estoque_atual": 200, "estoque_minimo": null, "disponivel": true, "link_drive": "", "nome_inci": "", "funcao": "", "notas": "Entrada recente", "fase": "", "ph_min": null, "ph_max": null, "temp_max": null, "concentracao_min": null, "concentracao_max": null}, {"id": 160, "nome": "Extrato Glicólico Barbatimão", "categoria": "Botânicos e Pós", "localizacao": "GELADEIRA", "fornecedor": "MERCADO LIVRE", "lote": "1410", "validade": "2026-10-01", "unidade": "ml", "estoque_atual": 1000, "estoque_minimo": null, "disponivel": true, "link_drive": "", "nome_inci": "", "funcao": "", "notas": "Entrada recente", "fase": "", "ph_min": null, "ph_max": null, "temp_max": null, "concentracao_min": null, "concentracao_max": null}, {"id": 161, "nome": "Alfa Bisabolol", "categoria": "Ativos e Tratamento", "localizacao": "AP2.1", "fornecedor": "ENGENHARIA DAS ESSENCIAS", "lote": "CB2601", "validade": "2027-01-01", "unidade": "ml", "estoque_atual": 100, "estoque_minimo": null, "disponivel": true, "link_drive": "", "nome_inci": "", "funcao": "", "notas": "Entrada recente", "fase": "", "ph_min": null, "ph_max": null, "temp_max": null, "concentracao_min": null, "concentracao_max": null}, {"id": 162, "nome": "Extrato Glicólico de Capsicum", "categoria": "Botânicos e Pós", "localizacao": "GELADEIRA", "fornecedor": "ENGENHARIA DAS ESSENCIAS", "lote": "PF250612", "validade": "2027-05-01", "unidade": "ml", "estoque_atual": 200, "estoque_minimo": null, "disponivel": true, "link_drive": "", "nome_inci": "", "funcao": "", "notas": "Entrada recente", "fase": "", "ph_min": null, "ph_max": null, "temp_max": null, "concentracao_min": null, "concentracao_max": null}, {"id": 163, "nome": "Alantoína", "categoria": "Ativos e Tratamento", "localizacao": "EP1.1", "fornecedor": "ENGENHARIA DAS ESSENCIAS", "lote": "FQ2310", "validade": "2031-02-01", "unidade": "g", "estoque_atual": 260, "estoque_minimo": null, "disponivel": true, "link_drive": "", "nome_inci": "", "funcao": "", "notas": "Entrada recente", "fase": "", "ph_min": null, "ph_max": null, "temp_max": null, "concentracao_min": null, "concentracao_max": null}, {"id": 164, "nome": "Estearato de Magnésio", "categoria": "Aditivos e Conservantes", "localizacao": "EP2", "fornecedor": "MERCADO LIVRE", "lote": "25020032501002", "validade": "2027-01-01", "unidade": "g", "estoque_atual": 1000, "estoque_minimo": null, "disponivel": true, "link_drive": "", "nome_inci": "", "funcao": "", "notas": "Entrada recente", "fase": "", "ph_min": null, "ph_max": null, "temp_max": null, "concentracao_min": null, "concentracao_max": null}, {"id": 165, "nome": "Ureia", "categoria": "Ativos e Tratamento", "localizacao": "EP1", "fornecedor": "ENGENHARIA DAS ESSENCIAS", "lote": "SF2502", "validade": "2027-12-01", "unidade": "g", "estoque_atual": 1000, "estoque_minimo": null, "disponivel": true, "link_drive": "", "nome_inci": "", "funcao": "", "notas": "Entrada recente", "fase": "", "ph_min": null, "ph_max": null, "temp_max": null, "concentracao_min": null, "concentracao_max": null}, {"id": 166, "nome": "Zinco PCA", "categoria": "Ativos e Tratamento", "localizacao": "EP1.1", "fornecedor": "BOTTICA BOTANIKA", "lote": "58402", "validade": "2026-09-01", "unidade": "g", "estoque_atual": 75, "estoque_minimo": null, "disponivel": true, "link_drive": "", "nome_inci": "", "funcao": "", "notas": "Entrada recente", "fase": "", "ph_min": null, "ph_max": null, "temp_max": null, "concentracao_min": null, "concentracao_max": null}, {"id": 167, "nome": "Alúmen de Potássio (novo lote)", "categoria": "Aditivos e Conservantes", "localizacao": "EP1.1", "fornecedor": "BOTTICA BOTANIKA", "lote": "21261", "validade": "2028-02-01", "unidade": "g", "estoque_atual": 500, "estoque_minimo": null, "disponivel": true, "link_drive": "", "nome_inci": "", "funcao": "", "notas": "Entrada recente", "fase": "", "ph_min": null, "ph_max": null, "temp_max": null, "concentracao_min": null, "concentracao_max": null}, {"id": 168, "nome": "Citrato de Trietila (novo lote)", "categoria": "Aditivos e Conservantes", "localizacao": "AP2", "fornecedor": "BOTTICA BOTANIKA", "lote": "3067831", "validade": "2028-01-01", "unidade": "ml", "estoque_atual": 750, "estoque_minimo": null, "disponivel": true, "link_drive": "", "nome_inci": "", "funcao": "", "notas": "Entrada recente", "fase": "", "ph_min": null, "ph_max": null, "temp_max": null, "concentracao_min": null, "concentracao_max": null}, {"id": 169, "nome": "OV Ginko Biloba", "categoria": "Óleos e Manteigas", "localizacao": "AP3.1", "fornecedor": "MERCADO LIVRE", "lote": "1225", "validade": "2027-04-01", "unidade": "ml", "estoque_atual": 100, "estoque_minimo": null, "disponivel": true, "link_drive": "", "nome_inci": "", "funcao": "", "notas": "Entrada recente", "fase": "", "ph_min": null, "ph_max": null, "temp_max": null, "concentracao_min": null, "concentracao_max": null}, {"id": 170, "nome": "OV de Tamanu (novo)", "categoria": "Óleos e Manteigas", "localizacao": "AP3.1", "fornecedor": "ENGENHARIA DAS ESSENCIAS", "lote": "", "validade": "", "unidade": "ml", "estoque_atual": 50, "estoque_minimo": null, "disponivel": true, "link_drive": "", "nome_inci": "", "funcao": "", "notas": "Entrada recente", "fase": "", "ph_min": null, "ph_max": null, "temp_max": null, "concentracao_min": null, "concentracao_max": null}, {"id": 171, "nome": "OE Patchouli Dark", "categoria": "Óleos Essenciais", "localizacao": "AP2", "fornecedor": "DESTILARIA BAURU", "lote": "", "validade": "", "unidade": "ml", "estoque_atual": 100, "estoque_minimo": null, "disponivel": true, "link_drive": "", "nome_inci": "", "funcao": "", "notas": "Entrada recente", "fase": "", "ph_min": null, "ph_max": null, "temp_max": null, "concentracao_min": null, "concentracao_max": null}, {"id": 172, "nome": "OE Eucalipto Radiata (novo)", "categoria": "Óleos Essenciais", "localizacao": "AP2", "fornecedor": "MERCADO LIVRE", "lote": "250625", "validade": "2027-06-01", "unidade": "ml", "estoque_atual": 10, "estoque_minimo": null, "disponivel": true, "link_drive": "", "nome_inci": "", "funcao": "", "notas": "Entrada recente", "fase": "", "ph_min": null, "ph_max": null, "temp_max": null, "concentracao_min": null, "concentracao_max": null}, {"id": 173, "nome": "OE Zimbro Junipero", "categoria": "Óleos Essenciais", "localizacao": "AP2", "fornecedor": "MERCADO LIVRE", "lote": "001/25", "validade": "", "unidade": "ml", "estoque_atual": 10, "estoque_minimo": null, "disponivel": true, "link_drive": "", "nome_inci": "", "funcao": "", "notas": "Entrada recente", "fase": "", "ph_min": null, "ph_max": null, "temp_max": null, "concentracao_min": null, "concentracao_max": null}, {"id": 174, "nome": "OE Cardamomo", "categoria": "Óleos Essenciais", "localizacao": "AP2", "fornecedor": "MERCADO LIVRE", "lote": "230", "validade": "2027-09-01", "unidade": "ml", "estoque_atual": 10, "estoque_minimo": null, "disponivel": true, "link_drive": "", "nome_inci": "", "funcao": "", "notas": "Entrada recente", "fase": "", "ph_min": null, "ph_max": null, "temp_max": null, "concentracao_min": null, "concentracao_max": null}, {"id": 175, "nome": "Absoluto de Cacau", "categoria": "Fragrâncias", "localizacao": "AP2", "fornecedor": "MERCADO LIVRE", "lote": "", "validade": "", "unidade": "ml", "estoque_atual": 10, "estoque_minimo": null, "disponivel": true, "link_drive": "", "nome_inci": "", "funcao": "", "notas": "Entrada recente", "fase": "", "ph_min": null, "ph_max": null, "temp_max": null, "concentracao_min": null, "concentracao_max": null}, {"id": 176, "nome": "Absoluto de Tonka Bean", "categoria": "Fragrâncias", "localizacao": "AP2", "fornecedor": "MERCADO LIVRE", "lote": "", "validade": "", "unidade": "ml", "estoque_atual": 5, "estoque_minimo": null, "disponivel": true, "link_drive": "", "nome_inci": "", "funcao": "", "notas": "Entrada recente", "fase": "", "ph_min": null, "ph_max": null, "temp_max": null, "concentracao_min": null, "concentracao_max": null}, {"id": 177, "nome": "OE Pimenta Rosa", "categoria": "Óleos Essenciais", "localizacao": "AP2", "fornecedor": "MERCADO LIVRE", "lote": "", "validade": "", "unidade": "ml", "estoque_atual": 10, "estoque_minimo": null, "disponivel": true, "link_drive": "", "nome_inci": "", "funcao": "", "notas": "Entrada recente", "fase": "", "ph_min": null, "ph_max": null, "temp_max": null, "concentracao_min": null, "concentracao_max": null}, {"id": 178, "nome": "OE Priprioca", "categoria": "Óleos Essenciais", "localizacao": "AP2", "fornecedor": "MERCADO LIVRE", "lote": "232", "validade": "2027-01-01", "unidade": "ml", "estoque_atual": 10, "estoque_minimo": null, "disponivel": true, "link_drive": "", "nome_inci": "", "funcao": "", "notas": "Entrada recente", "fase": "", "ph_min": null, "ph_max": null, "temp_max": null, "concentracao_min": null, "concentracao_max": null}, {"id": 179, "nome": "OE Grapefruit", "categoria": "Óleos Essenciais", "localizacao": "AP2", "fornecedor": "MERCADO LIVRE", "lote": "L041225", "validade": "2027-12-01", "unidade": "ml", "estoque_atual": 10, "estoque_minimo": null, "disponivel": true, "link_drive": "", "nome_inci": "", "funcao": "", "notas": "Entrada recente", "fase": "", "ph_min": null, "ph_max": null, "temp_max": null, "concentracao_min": null, "concentracao_max": null}, {"id": 180, "nome": "Cristais de Mentol", "categoria": "Ativos e Tratamento", "localizacao": "EP1", "fornecedor": "", "lote": "2509328", "validade": "", "unidade": "", "estoque_atual": null, "estoque_minimo": null, "disponivel": true, "link_drive": "", "nome_inci": "", "funcao": "", "notas": "Entrada recente", "fase": "", "ph_min": null, "ph_max": null, "temp_max": null, "concentracao_min": null, "concentracao_max": null}, {"id": 181, "nome": "Dióxido de Titânio (novo)", "categoria": "Aditivos e Conservantes", "localizacao": "EP1.1", "fornecedor": "", "lote": "", "validade": "", "unidade": "", "estoque_atual": null, "estoque_minimo": null, "disponivel": true, "link_drive": "", "nome_inci": "", "funcao": "", "notas": "Entrada recente", "fase": "", "ph_min": null, "ph_max": null, "temp_max": null, "concentracao_min": null, "concentracao_max": null}];
+
+let db = { ingredients: [], formulas: [], producao: [] };
+let ingFiltered = [], ingPage = 1, ingSort = 'nome', ingDir = 1;
+let editIngId = null, editForId = null, editProdId = null;
+let forIngredientes = [];
+const PER_PAGE = 30;
+
+// ── STORAGE ──
+function save() {
+  try { localStorage.setItem('oriem_v3', JSON.stringify(db)); } catch(e){}
+}
+
+function load() {
+  try {
+    const s = localStorage.getItem('oriem_v3');
+    if (s) {
+      db = JSON.parse(s);
+      if (!db.ingredients) db.ingredients = [];
+      if (!db.formulas) db.formulas = [];
+      if (!db.producao) db.producao = [];
+    } else {
+      db.ingredients = JSON.parse(JSON.stringify(SEED_INGREDIENTS));
+      db.formulas = [];
+      db.producao = [];
+      save();
+    }
+  } catch(e) {
+    db.ingredients = JSON.parse(JSON.stringify(SEED_INGREDIENTS));
+    db.formulas = [];
+    db.producao = [];
+    save();
+  }
+}
+
+// ── NAVIGATION ──
+function showPage(name) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('page-' + name).classList.add('active');
+  document.getElementById('nav-' + name).classList.add('active');
+  if (name === 'ingredientes') { buildFilters(); filterIngredientes(); renderStats(); }
+  if (name === 'formulas') renderFormulas();
+  if (name === 'alertas') renderAlertas();
+  if (name === 'fornecedores') renderFornecedores();
+  if (name === 'compras') renderCompras();
+  if (name === 'producao') renderProducao();
+}
+
+// ── UTILS ──
+function fmtDate(v) {
+  if (!v) return '—';
+  try { return new Date(v).toLocaleDateString('pt-BR'); } catch(e) { return v; }
+}
+
+function validadeStatus(v) {
+  if (!v) return 'semdata';
+  const d = new Date(v), today = new Date();
+  const diff = (d - today) / 86400000;
+  if (diff < 0) return 'danger';
+  if (diff < 30) return 'danger';
+  if (diff < 90) return 'warn';
+  return 'ok';
+}
+
+function daysLeft(v) {
+  if (!v) return null;
+  return Math.round((new Date(v) - new Date()) / 86400000);
+}
+
+function statusBadge(ing) {
+  if (ing.localizacao === 'FALTA') return '<span class="badge badge-danger">🚫 Localizar</span>';
+  const s = validadeStatus(ing.validade);
+  const dl = daysLeft(ing.validade);
+  if (s === 'danger' && ing.validade) return `<span class="badge badge-danger">${dl < 0 ? 'Vencido' : dl + 'd'}</span>`;
+  if (s === 'warn') return `<span class="badge badge-warn">⏰ ${dl}d</span>`;
+  if (s === 'ok') return '<span class="badge badge-ok">✓ OK</span>';
+  return '<span class="badge badge-neutral">—</span>';
+}
+
+function toast(msg, type='') {
+  const c = document.getElementById('toasts');
+  const t = document.createElement('div');
+  t.className = 'toast ' + type;
+  t.textContent = msg;
+  c.appendChild(t);
+  setTimeout(() => t.remove(), 3000);
+}
+
+function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
+
+// Close on backdrop click
+document.querySelectorAll('.overlay').forEach(o => {
+  o.addEventListener('click', e => { if (e.target === o) o.classList.add('hidden'); });
+});
+
+// ── STATS ──
+function renderStats() {
+  const total = db.ingredients.length;
+  const danger = db.ingredients.filter(i => validadeStatus(i.validade) === 'danger' && i.validade).length;
+  const warn = db.ingredients.filter(i => validadeStatus(i.validade) === 'warn').length;
+  const seminfo = db.ingredients.filter(i => !i.fornecedor || !i.lote).length;
+  document.getElementById('ing-stats').innerHTML = `
+    <div class="stat"><div class="stat-val">${total}</div><div class="stat-lbl">Ingredientes</div></div>
+    <div class="stat verde"><div class="stat-val">${total - danger - warn}</div><div class="stat-lbl">Status OK</div></div>
+    <div class="stat warn"><div class="stat-val">${warn}</div><div class="stat-lbl">Vencem em 90d</div></div>
+    <div class="stat danger"><div class="stat-val">${danger}</div><div class="stat-lbl">Vencidos/Críticos</div></div>
+  `;
+  // Update badge
+  const total_alertas = danger + warn + db.ingredients.filter(i => i.localizacao === 'FALTA').length;
+  const badge = document.getElementById('alertas-badge');
+  badge.textContent = total_alertas;
+  badge.style.display = total_alertas > 0 ? 'inline' : 'none';
+}
+
+// ── FILTERS / TABLE ──
+function buildFilters() {
+  const cats = [...new Set(db.ingredients.map(i => i.categoria))].sort();
+  const locs = [...new Set(db.ingredients.map(i => i.localizacao).filter(Boolean))].sort();
+  const catSel = document.getElementById('ing-filter-cat');
+  const locSel = document.getElementById('ing-filter-loc');
+  const cv = catSel.value, lv = locSel.value;
+  catSel.innerHTML = '<option value="">Todas as categorias</option>' + cats.map(c => `<option ${c===cv?'selected':''} value="${c}">${c}</option>`).join('');
+  locSel.innerHTML = '<option value="">Todas as localizações</option>' + locs.map(l => `<option ${l===lv?'selected':''} value="${l}">${l}</option>`).join('');
+}
+
+function filterIngredientes() {
+  const q = document.getElementById('ing-search').value.toLowerCase();
+  const cat = document.getElementById('ing-filter-cat').value;
+  const loc = document.getElementById('ing-filter-loc').value;
+  const st = document.getElementById('ing-filter-status').value;
+  ingFiltered = db.ingredients.filter(i => {
+    if (q && ![ i.nome, i.inci, i.fornecedor, i.lote, i.observacoes ].some(x => (x||'').toLowerCase().includes(q))) return false;
+    if (cat && i.categoria !== cat) return false;
+    if (loc && i.localizacao !== loc) return false;
+    if (st) {
+      const s = validadeStatus(i.validade);
+      if (st === 'ok' && s !== 'ok') return false;
+      if (st === 'warn' && s !== 'warn') return false;
+      if (st === 'danger' && !(s === 'danger' && i.validade)) return false;
+      if (st === 'semdata' && s !== 'semdata') return false;
+    }
+    return true;
+  });
+  ingFiltered.sort((a, b) => {
+    const va = (a[ingSort]||'').toString().toLowerCase();
+    const vb = (b[ingSort]||'').toString().toLowerCase();
+    return va.localeCompare(vb, 'pt-BR') * ingDir;
+  });
+  ingPage = 1;
+  renderIngTable();
+}
+
+function sortIng(field) {
+  if (ingSort === field) ingDir *= -1; else { ingSort = field; ingDir = 1; }
+  filterIngredientes();
+}
+
+function renderIngTable() {
+  const start = (ingPage - 1) * PER_PAGE;
+  const rows = ingFiltered.slice(start, start + PER_PAGE);
+  const tbody = document.getElementById('ing-tbody');
+  if (!rows.length) {
+    tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:32px;color:var(--ink3)">Nenhum ingrediente encontrado</td></tr>';
+  } else {
+    tbody.innerHTML = rows.map(i => `
+      <tr onclick="openIngModal(${i.id})">
+        <td style="font-weight:500;max-width:200px">${i.nome}<br><small style="font-family:monospace;font-size:10px;color:var(--ink3)">${i.inci||''}</small></td>
+        <td><span class="badge badge-cat">${i.categoria}</span></td>
+        <td>${i.localizacao ? `<span class="loc-tag">${i.localizacao}</span>` : '—'}</td>
+        <td style="color:var(--ink2)">${i.fornecedor||'—'}</td>
+        <td style="font-family:monospace;font-size:12px">${i.lote||'—'}</td>
+        <td style="font-size:12px">${fmtDate(i.validade)}</td>
+        <td>${statusBadge(i)}</td>
+        <td><button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();openIngModal(${i.id})">✏️</button></td>
+      </tr>`).join('');
+  }
+  const total = ingFiltered.length;
+  const pages = Math.ceil(total / PER_PAGE);
+  document.getElementById('ing-page-info').textContent = `${start+1}–${Math.min(start+PER_PAGE,total)} de ${total}`;
+  let btns = `<button class="page-btn" onclick="ingGoPage(${ingPage-1})" ${ingPage===1?'disabled':''}>‹</button>`;
+  for (let p = Math.max(1,ingPage-2); p <= Math.min(pages,ingPage+2); p++) btns += `<button class="page-btn ${p===ingPage?'active':''}" onclick="ingGoPage(${p})">${p}</button>`;
+  btns += `<button class="page-btn" onclick="ingGoPage(${ingPage+1})" ${ingPage>=pages?'disabled':''}>›</button>`;
+  document.getElementById('ing-page-btns').innerHTML = btns;
+}
+
+function ingGoPage(p) {
+  const pages = Math.ceil(ingFiltered.length / PER_PAGE);
+  if (p < 1 || p > pages) return;
+  ingPage = p; renderIngTable();
+}
+
+// ── ING MODAL ──
+function openIngModal(id) {
+  editIngId = id;
+  const i = id !== null ? db.ingredients.find(x => x.id === id) : null;
+  document.getElementById('modal-ing-title').textContent = i ? 'Editar: ' + i.nome : 'Novo Ingrediente';
+  document.getElementById('btn-del-ing').style.display = i ? 'inline-flex' : 'none';
+  document.getElementById('i-nome').value = i?.nome||'';
+  document.getElementById('i-inci').value = i?.inci||'';
+  document.getElementById('i-categoria').value = i?.categoria||'A Classificar';
+  document.getElementById('i-loc').value = i?.localizacao||'';
+  document.getElementById('i-disp').checked = i ? i.disponivel !== false : true;
+  document.getElementById('i-disp-label').textContent = (i ? i.disponivel !== false : true) ? 'Sim' : 'Não';
+  document.getElementById('i-qtd').value = i?.quantidade||'';
+  document.getElementById('i-unidade').value = i?.unidade||'g';
+  document.getElementById('i-forn').value = i?.fornecedor||'';
+  document.getElementById('i-lote').value = i?.lote||'';
+  document.getElementById('i-validade').value = i?.validade||'';
+  document.getElementById('i-custo').value = i?.custoUnitario||'';
+  document.getElementById('i-drive').value = i?.driveLink||'';
+  document.getElementById('i-obs').value = i?.observacoes||'';
+  document.getElementById('modal-ing').classList.remove('hidden');
+}
+
+document.getElementById('i-disp').addEventListener('change', function() {
+  document.getElementById('i-disp-label').textContent = this.checked ? 'Sim' : 'Não';
+});
+
+function saveIng() {
+  const nome = document.getElementById('i-nome').value.trim();
+  if (!nome) { toast('Nome é obrigatório', 'err'); return; }
+  const obj = {
+    nome, inci: document.getElementById('i-inci').value.trim(),
+    categoria: document.getElementById('i-categoria').value,
+    localizacao: document.getElementById('i-loc').value,
+    disponivel: document.getElementById('i-disp').checked,
+    quantidade: document.getElementById('i-qtd').value.trim(),
+    unidade: document.getElementById('i-unidade').value,
+    fornecedor: document.getElementById('i-forn').value.trim(),
+    lote: document.getElementById('i-lote').value.trim(),
+    validade: document.getElementById('i-validade').value,
+    custoUnitario: document.getElementById('i-custo').value.trim(),
+    driveLink: document.getElementById('i-drive').value.trim(),
+    observacoes: document.getElementById('i-obs').value.trim(),
+  };
+  if (editIngId !== null) {
+    const idx = db.ingredients.findIndex(x => x.id === editIngId);
+    db.ingredients[idx] = { ...db.ingredients[idx], ...obj };
+    toast('Ingrediente atualizado!', 'ok');
+  } else {
+    obj.id = Date.now();
+    db.ingredients.push(obj);
+    toast('Ingrediente adicionado!', 'ok');
+  }
+  save(); closeModal('modal-ing'); buildFilters(); filterIngredientes(); renderStats(); syncCompras();
+}
+
+function deleteIng() {
+  if (!confirm('Excluir este ingrediente?')) return;
+  db.ingredients = db.ingredients.filter(x => x.id !== editIngId);
+  save(); closeModal('modal-ing'); buildFilters(); filterIngredientes(); renderStats();
+  toast('Ingrediente removido.', 'err');
+}
+
+// ── FÓRMULAS ──
+const SUBLINHAS = {
+  Capilar: ['Cuidado Térmico','Asfixia Folicular','Diário'],
+  Corporal: ['Dermosfera','Diário'],
+  Facial: ['Dermosfera','Diário'],
+  Limpeza: ['Superfícies','Higiene Pessoal','Multiuso'],
+};
+
+function updateSublinhas() {
+  const linha = document.getElementById('f-linha').value;
+  const sel = document.getElementById('f-sublinha');
+  const opts = SUBLINHAS[linha] || [];
+  sel.innerHTML = '<option value="">—</option>' + opts.map(s => `<option value="${s}">${s}</option>`).join('');
+}
+
+function renderFormulas() {
+  const grid = document.getElementById('formula-grid');
+  if (!db.formulas.length) {
+    grid.innerHTML = '<div class="empty"><div class="empty-icon">⚗️</div><div class="empty-title">Nenhuma fórmula cadastrada</div><p style="font-size:13px;margin-bottom:16px">Crie sua primeira fórmula</p><button class="btn btn-primary" onclick="openForModal(null)">+ Nova Fórmula</button></div>';
+    return;
+  }
+  const byLinha = {};
+  db.formulas.forEach(f => {
+    const k = f.linha || 'Sem linha';
+    if (!byLinha[k]) byLinha[k] = [];
+    byLinha[k].push(f);
+  });
+  grid.innerHTML = Object.entries(byLinha).map(([linha, fms]) => `
+    <div style="grid-column:1/-1;margin-bottom:20px">
+      <div style="font-size:11px;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:var(--ink3);margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid var(--border)">${linha}</div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:12px">
+        ${fms.map(f => `
+          <div class="formula-card" onclick="openForModal(${f.id})">
+            <div class="formula-card-name">${f.nome}</div>
+            <div class="formula-card-meta">${f.sublinha||''} ${f.tipo?'· '+f.tipo:''} ${f.versao?'· '+f.versao:''} · ${(f.ingredientes||[]).length} ing.</div>
+            <div class="formula-card-tags">
+              ${(f.ingredientes||[]).slice(0,4).map(fi => {
+                const ing = db.ingredients.find(i => i.id === fi.id);
+                return ing ? `<span class="badge badge-neutral" style="font-size:10px">${ing.nome}</span>` : '';
+              }).join('')}
+              ${(f.ingredientes||[]).length > 4 ? `<span style="font-size:10px;color:var(--ink3)">+${f.ingredientes.length-4}</span>` : ''}
+            </div>
+          </div>`).join('')}
+      </div>
+    </div>`).join('');
+}
+
+function openForModal(id) {
+  editForId = id;
+  forIngredientes = [];
+  const f = id !== null ? db.formulas.find(x => x.id === id) : null;
+  document.getElementById('modal-for-title').textContent = f ? 'Editar: ' + f.nome : 'Nova Fórmula';
+  document.getElementById('btn-del-for').style.display = f ? 'inline-flex' : 'none';
+  document.getElementById('f-nome').value = f?.nome||'';
+  document.getElementById('f-linha').value = f?.linha||'';
+  updateSublinhas();
+  document.getElementById('f-sublinha').value = f?.sublinha||'';
+  document.getElementById('f-tipo').value = f?.tipo||'';
+  document.getElementById('f-versao').value = f?.versao||'';
+  document.getElementById('f-massa').value = f?.massa||'';
+  document.getElementById('f-obs').value = f?.obs||'';
+  forIngredientes = [...(f?.ingredientes||[])];
+  // Populate ing select
+  document.getElementById('f-add-ing').innerHTML = db.ingredients.map(i => `<option value="${i.id}">${i.nome}</option>`).join('');
+  renderForIngList();
+  document.getElementById('modal-for').classList.remove('hidden');
+}
+
+function renderForIngList() {
+  const tbody = document.getElementById('f-ing-list');
+  const faseColors = {A:'#dbeafe',B:'#fef9c3',C:'#d1fae5',D:'#ede9fe'};
+  if (!forIngredientes.length) {
+    tbody.innerHTML = '<tr><td colspan="6" style="padding:10px;font-size:13px;color:var(--ink3)">Nenhum ingrediente</td></tr>';
+    return;
+  }
+  tbody.innerHTML = forIngredientes.map((fi, idx) => {
+    const ing = db.ingredients.find(i => i.id === fi.id);
+    const bg = faseColors[fi.fase]||'#f3f4f6';
+    return `<tr style="border-bottom:1px solid var(--border)">
+      <td style="padding:7px 10px"><span style="background:${bg};padding:2px 8px;border-radius:4px;font-size:12px;font-weight:600">${fi.fase||'A'}</span></td>
+      <td style="padding:7px 10px;font-weight:500">${ing?ing.nome:'?'}</td>
+      <td style="padding:7px 10px;font-family:monospace;font-size:12px">${fi.qty||'—'}</td>
+      <td style="padding:7px 10px;font-family:monospace;font-size:12px">${fi.conc||'—'}</td>
+      <td style="padding:7px 10px;font-size:12px;color:var(--ink2)">${fi.func||''}</td>
+      <td style="padding:7px 10px"><button onclick="forIngredientes.splice(${idx},1);renderForIngList()" style="background:none;border:none;cursor:pointer;color:var(--ink3)">✕</button></td>
+    </tr>`;
+  }).join('');
+}
+
+function addForIng() {
+  const sel = document.getElementById('f-add-ing');
+  const id = parseInt(sel.value);
+  if (!id) return;
+  forIngredientes.push({
+    id,
+    fase: document.getElementById('f-add-fase').value,
+    qty: document.getElementById('f-add-qty').value.trim(),
+    conc: document.getElementById('f-add-conc').value.trim(),
+    func: document.getElementById('f-add-func').value.trim(),
+  });
+  ['f-add-qty','f-add-conc','f-add-func'].forEach(x => document.getElementById(x).value='');
+  renderForIngList();
+}
+
+function saveFor() {
+  const nome = document.getElementById('f-nome').value.trim();
+  if (!nome) { toast('Nome é obrigatório', 'err'); return; }
+  const obj = {
+    nome, linha: document.getElementById('f-linha').value,
+    sublinha: document.getElementById('f-sublinha').value,
+    tipo: document.getElementById('f-tipo').value.trim(),
+    versao: document.getElementById('f-versao').value.trim(),
+    massa: document.getElementById('f-massa').value,
+    obs: document.getElementById('f-obs').value.trim(),
+    ingredientes: [...forIngredientes],
+  };
+  if (editForId !== null) {
+    const idx = db.formulas.findIndex(x => x.id === editForId);
+    db.formulas[idx] = { ...db.formulas[idx], ...obj };
+    toast('Fórmula atualizada!', 'ok');
+  } else {
+    obj.id = Date.now();
+    db.formulas.push(obj);
+    toast('Fórmula salva!', 'ok');
+  }
+  save(); closeModal('modal-for'); renderFormulas();
+}
+
+function deleteFor() {
+  if (!confirm('Excluir esta fórmula?')) return;
+  db.formulas = db.formulas.filter(x => x.id !== editForId);
+  save(); closeModal('modal-for'); renderFormulas();
+  toast('Fórmula removida.', 'err');
+}
+
+// ── ALERTAS ──
+function renderAlertas() {
+  const vencidos = db.ingredients.filter(i => validadeStatus(i.validade)==='danger' && i.validade);
+  const avencer = db.ingredients.filter(i => { const dl=daysLeft(i.validade); return dl!==null && dl>=0 && dl<90; });
+  const falta = db.ingredients.filter(i => i.localizacao==='FALTA');
+  const seminfo = db.ingredients.filter(i => !i.fornecedor||!i.lote);
+
+  const section = (title, color, items, fn) => {
+    if (!items.length) return '';
+    return `<div class="card" style="margin-bottom:16px">
+      <div class="card-header"><span class="card-title" style="color:var(--${color})">${title} (${items.length})</span></div>
+      <div class="table-wrap"><table>
+        <thead><tr><th>Ingrediente</th><th>Local</th><th>Info</th><th></th></tr></thead>
+        <tbody>${items.map(i => `<tr>
+          <td style="font-weight:500">${i.nome}</td>
+          <td>${i.localizacao?`<span class="loc-tag">${i.localizacao}</span>`:'—'}</td>
+          <td style="font-size:12px;color:var(--${color})">${fn(i)}</td>
+          <td><button class="btn btn-ghost btn-sm" onclick="openIngModal(${i.id})">✏️</button></td>
+        </tr>`).join('')}</tbody>
+      </table></div></div>`;
+  };
+
+  const html = 
+    section('🔴 Vencidos / Críticos', 'danger', vencidos, i => `Venceu ${fmtDate(i.validade)}`) +
+    section('⏰ Vencem em menos de 90 dias', 'warn', avencer, i => `${daysLeft(i.validade)} dias restantes`) +
+    section('🚫 Sem localização', 'warn', falta, i => 'Localização: FALTA') +
+    section('📋 Incompletos (ANVISA)', 'warn', seminfo, i => {
+      const m=[]; if(!i.fornecedor) m.push('fornecedor'); if(!i.lote) m.push('lote');
+      return 'Falta: '+m.join(', ');
+    });
+
+  document.getElementById('alertas-content').innerHTML = html || 
+    '<div class="empty"><div class="empty-icon">✅</div><div class="empty-title">Nenhum alerta ativo</div></div>';
+}
+
+// ── PRODUÇÃO ──
+function renderProducao() {
+  const q = (document.getElementById('prod-search').value||'').toLowerCase();
+  const fs = document.getElementById('prod-filter-status').value;
+  let rows = db.producao.filter(p => {
+    if (q && ![p.produto,p.lote,p.obs].some(x=>(x||'').toLowerCase().includes(q))) return false;
+    if (fs && p.status !== fs) return false;
+    return true;
+  }).sort((a,b) => (b.data||'').localeCompare(a.data||''));
+
+  const tbody = document.getElementById('prod-tbody');
+  const empty = document.getElementById('prod-empty');
+  const statusLabel = {
+    concluido:'<span class="badge badge-ok">✓ Concluído</span>',
+    reprovado:'<span class="badge badge-danger">✗ Reprovado</span>',
+    em_andamento:'<span class="badge badge-warn">⏳ Em andamento</span>',
+    planejado:'<span class="badge badge-neutral">📋 Planejado</span>',
+  };
+  if (!rows.length) { tbody.innerHTML=''; empty.style.display='block'; return; }
+  empty.style.display = 'none';
+  tbody.innerHTML = rows.map(p => `<tr onclick="openProdModal('${p.id}')">
+    <td style="font-family:monospace;font-size:12px">${p.lote||'—'}</td>
+    <td style="font-weight:500">${p.produto}</td>
+    <td style="font-size:12px">${fmtDate(p.data)}</td>
+    <td style="font-size:12px">${p.qtdPlan||'—'}</td>
+    <td style="font-size:12px">${p.qtdProd||'—'}</td>
+    <td>${statusLabel[p.status]||p.status}</td>
+    <td style="font-size:12px">${p.qualidade==='aprovado'?'<span class="badge badge-ok">✓</span>':p.qualidade==='reprovado'?'<span class="badge badge-danger">✗</span>':'—'}</td>
+    <td><button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();openProdModal('${p.id}')">✏️</button></td>
+  </tr>`).join('');
+}
+
+function openProdModal(id) {
+  editProdId = id;
+  const p = id ? db.producao.find(x => x.id === id) : null;
+  document.getElementById('modal-prod-title').textContent = p ? 'Editar: ' + p.produto : 'Nova Ordem';
+  document.getElementById('btn-del-prod').style.display = p ? 'inline-flex' : 'none';
+  document.getElementById('p-produto').value = p?.produto||'';
+  document.getElementById('p-lote').value = p?.lote||'';
+  document.getElementById('p-data').value = p?.data||new Date().toISOString().slice(0,10);
+  document.getElementById('p-status').value = p?.status||'planejado';
+  document.getElementById('p-qtd-plan').value = p?.qtdPlan||'';
+  document.getElementById('p-qtd-prod').value = p?.qtdProd||'';
+  document.getElementById('p-qual').value = p?.qualidade||'';
+  document.getElementById('p-obs').value = p?.obs||'';
+  // Formulas select
+  document.getElementById('p-formula').innerHTML = '<option value="">— nenhuma —</option>' +
+    db.formulas.map(f => `<option value="${f.id}" ${f.id==p?.formulaId?'selected':''}>${f.nome}</option>`).join('');
+  document.getElementById('p-formula').value = p?.formulaId||'';
+  document.getElementById('modal-prod').classList.remove('hidden');
+}
+
+function gerarLote(produto) {
+  const n = new Date();
+  const dd = String(n.getDate()).padStart(2,'0');
+  const mm = String(n.getMonth()+1).padStart(2,'0');
+  const yy = String(n.getFullYear()).slice(-2);
+  const pfx = (produto||'XX').replace(/[^A-Za-z]/g,'').slice(0,3).toUpperCase();
+  return `${pfx}${yy}${mm}${dd}`;
+}
+
+function saveProd() {
+  const produto = document.getElementById('p-produto').value.trim();
+  if (!produto) { toast('Nome do produto é obrigatório', 'err'); return; }
+  const obj = {
+    id: editProdId || ('p'+Date.now()),
+    produto,
+    lote: document.getElementById('p-lote').value.trim() || gerarLote(produto),
+    data: document.getElementById('p-data').value,
+    status: document.getElementById('p-status').value,
+    qtdPlan: document.getElementById('p-qtd-plan').value.trim(),
+    qtdProd: document.getElementById('p-qtd-prod').value.trim(),
+    qualidade: document.getElementById('p-qual').value,
+    obs: document.getElementById('p-obs').value.trim(),
+    formulaId: document.getElementById('p-formula').value||null,
+  };
+  if (editProdId) {
+    const idx = db.producao.findIndex(x => x.id === editProdId);
+    if (idx >= 0) db.producao[idx] = obj; else db.producao.push(obj);
+  } else {
+    db.producao.push(obj);
+  }
+  save(); closeModal('modal-prod'); renderProducao();
+  toast('Ordem salva!', 'ok');
+}
+
+function deleteProd() {
+  if (!confirm('Excluir esta ordem?')) return;
+  db.producao = db.producao.filter(x => x.id !== editProdId);
+  save(); closeModal('modal-prod'); renderProducao();
+  toast('Ordem removida.', 'err');
+}
+
+// ── BACKUP ──
+function exportBackup() {
+  const blob = new Blob([JSON.stringify(db, null, 2)], {type:'application/json'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'oriem-backup-' + new Date().toISOString().slice(0,10) + '.json';
+  a.click();
+  toast('Backup exportado!', 'ok');
+}
+
+function importBackup(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = ev => {
+    try {
+      const imported = JSON.parse(ev.target.result);
+      if (!imported.ingredients) { toast('Arquivo inválido', 'err'); return; }
+      if (!confirm(`Importar ${imported.ingredients.length} ingredientes? Isso substituirá os dados atuais.`)) return;
+      db = imported;
+      if (!db.formulas) db.formulas = [];
+      if (!db.producao) db.producao = [];
+      save(); buildFilters(); filterIngredientes(); renderStats();
+      toast('Backup importado!', 'ok');
+    } catch(e) { toast('Erro ao importar', 'err'); }
+  };
+  reader.readAsText(file);
+  e.target.value = '';
+}
+
+// ── FORNECEDORES ──
+let editFornId = null;
+
+function renderFornecedores() {
+  if (!db.fornecedores) db.fornecedores = [];
+  const q = (document.getElementById('forn-search')?.value||'').toLowerCase();
+  let rows = db.fornecedores.filter(f => !q || f.nome.toLowerCase().includes(q));
+  const tbody = document.getElementById('forn-tbody');
+  const empty = document.getElementById('forn-empty');
+  if (!rows.length) { tbody.innerHTML=''; empty.style.display='block'; return; }
+  empty.style.display = 'none';
+  tbody.innerHTML = rows.map(f => {
+    // Count ingredients from this supplier
+    const ingCount = db.ingredients.filter(i => i.fornecedor && i.fornecedor.toLowerCase() === f.nome.toLowerCase()).length;
+    return `<tr style="border-bottom:1px solid var(--border);cursor:pointer" onclick="openFornModal('${f.id}')">
+      <td style="padding:10px 14px;font-weight:500">${f.nome}</td>
+      <td style="padding:10px 14px;font-size:12px">${f.site ? `<a href="https://${f.site.replace('https://','').replace('http://','')} " target="_blank" style="color:var(--terra)">${f.site}</a>` : '—'}</td>
+      <td style="padding:10px 14px;font-size:12px">${f.cidade||'—'}</td>
+      <td style="padding:10px 14px;text-align:center"><span class="badge badge-cat">${ingCount}</span></td>
+      <td style="padding:10px 14px;font-size:12px;color:var(--ink2)">${f.obs||''}</td>
+      <td style="padding:10px 14px"><button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();openFornModal('${f.id}')">✏️</button></td>
+    </tr>`;
+  }).join('');
+}
+
+function openFornModal(id) {
+  editFornId = id;
+  const f = id ? db.fornecedores?.find(x => x.id === id) : null;
+  document.getElementById('modal-forn-title').textContent = f ? 'Editar: ' + f.nome : 'Novo Fornecedor';
+  document.getElementById('btn-del-forn').style.display = f ? 'inline-flex' : 'none';
+  document.getElementById('fn-nome').value = f?.nome||'';
+  document.getElementById('fn-site').value = f?.site||'';
+  document.getElementById('fn-tel').value = f?.tel||'';
+  document.getElementById('fn-email').value = f?.email||'';
+  document.getElementById('fn-cidade').value = f?.cidade||'';
+  document.getElementById('fn-obs').value = f?.obs||'';
+  document.getElementById('modal-forn').classList.remove('hidden');
+}
+
+function saveForn() {
+  const nome = document.getElementById('fn-nome').value.trim();
+  if (!nome) { toast('Nome é obrigatório', 'err'); return; }
+  if (!db.fornecedores) db.fornecedores = [];
+  const obj = {
+    nome, site: document.getElementById('fn-site').value.trim(),
+    tel: document.getElementById('fn-tel').value.trim(),
+    email: document.getElementById('fn-email').value.trim(),
+    cidade: document.getElementById('fn-cidade').value.trim(),
+    obs: document.getElementById('fn-obs').value.trim(),
+  };
+  if (editFornId) {
+    const idx = db.fornecedores.findIndex(x => x.id === editFornId);
+    db.fornecedores[idx] = { ...db.fornecedores[idx], ...obj };
+    toast('Fornecedor atualizado!', 'ok');
+  } else {
+    obj.id = 'f' + Date.now();
+    db.fornecedores.push(obj);
+    toast('Fornecedor cadastrado!', 'ok');
+  }
+  save(); closeModal('modal-forn'); renderFornecedores(); updateFornDatalist();
+}
+
+function deleteForn() {
+  if (!confirm('Excluir este fornecedor?')) return;
+  db.fornecedores = db.fornecedores.filter(x => x.id !== editFornId);
+  save(); closeModal('modal-forn'); renderFornecedores(); updateFornDatalist();
+  toast('Fornecedor removido.', 'err');
+}
+
+function updateFornDatalist() {
+  // Update datalist in ingrediente modal
+  const dl = document.getElementById('forn-datalist');
+  if (!dl) return;
+  if (!db.fornecedores) db.fornecedores = [];
+  // Also collect unique fornecedores from existing ingredients
+  const fromIngs = [...new Set(db.ingredients.map(i => i.fornecedor).filter(Boolean))];
+  const fromCad = db.fornecedores.map(f => f.nome);
+  const all = [...new Set([...fromCad, ...fromIngs])].sort();
+  dl.innerHTML = all.map(n => `<option value="${n}">`).join('');
+}
+
+// Auto-cadastrar fornecedores dos ingredientes existentes
+function seedFornecedoresFromIngredients() {
+  if (!db.fornecedores) db.fornecedores = [];
+  if (db.fornecedores.length > 0) return; // already seeded
+  const unique = [...new Set(db.ingredients.map(i => i.fornecedor).filter(Boolean))];
+  unique.forEach(nome => {
+    if (!db.fornecedores.find(f => f.nome.toLowerCase() === nome.toLowerCase())) {
+      db.fornecedores.push({ id: 'f' + Date.now() + Math.random(), nome, site:'', tel:'', email:'', cidade:'', obs:'' });
+    }
+  });
+  save();
+}
+
+// ── LISTA DE COMPRAS ──
+function syncCompras() {
+  // Auto-add unavailable ingredients to compras list
+  if (!db.compras) db.compras = [];
+  db.ingredients.forEach(ing => {
+    if (ing.disponivel === false) {
+      const exists = db.compras.find(c => c.ingId === ing.id);
+      if (!exists) {
+        db.compras.push({ id: Date.now() + Math.random(), ingId: ing.id, obs: '', status: 'pendente', auto: true });
+      }
+    } else {
+      // Remove from compras if marked available again
+      db.compras = db.compras.filter(c => !(c.ingId === ing.id && c.auto));
+    }
+  });
+  updateComprasBadge();
+  save();
+}
+
+function updateComprasBadge() {
+  if (!db.compras) db.compras = [];
+  const pending = db.compras.filter(c => c.status === 'pendente').length;
+  const badge = document.getElementById('compras-badge');
+  if (badge) { badge.textContent = pending; badge.style.display = pending > 0 ? 'inline' : 'none'; }
+}
+
+function renderCompras() {
+  if (!db.compras) db.compras = [];
+  const q = (document.getElementById('compras-search')?.value||'').toLowerCase();
+  const fs = document.getElementById('compras-filter')?.value||'';
+
+  let rows = db.compras.filter(c => {
+    const ing = db.ingredients.find(i => i.id === c.ingId);
+    const nome = ing?.nome||'';
+    if (q && !nome.toLowerCase().includes(q)) return false;
+    if (fs && c.status !== fs) return false;
+    return true;
+  });
+
+  const tbody = document.getElementById('compras-tbody');
+  const empty = document.getElementById('compras-empty');
+  if (!rows.length) { tbody.innerHTML=''; empty.style.display='block'; return; }
+  empty.style.display = 'none';
+
+  tbody.innerHTML = rows.map(c => {
+    const ing = db.ingredients.find(i => i.id === c.ingId);
+    const comprado = c.status === 'comprado';
+    return `<tr style="border-bottom:1px solid var(--border);${comprado?'opacity:0.5':''}">
+      <td style="padding:10px 14px;text-align:center">
+        <input type="checkbox" ${comprado?'checked':''} onchange="toggleComprada('${c.id}',this.checked)"
+          style="width:16px;height:16px;cursor:pointer;accent-color:var(--verde)">
+      </td>
+      <td style="padding:10px 14px;font-weight:500${comprado?';text-decoration:line-through':''}">${ing?.nome||'Ingrediente removido'}</td>
+      <td style="padding:10px 14px"><span class="badge badge-cat">${ing?.categoria||'—'}</span></td>
+      <td style="padding:10px 14px;font-size:12px;color:var(--ink2)">${ing?.fornecedor||'—'}</td>
+      <td style="padding:10px 14px;font-size:12px;color:var(--ink2)">${c.obs||''}</td>
+      <td style="padding:10px 14px">
+        <button onclick="removeCompra('${c.id}')" style="background:none;border:none;cursor:pointer;color:var(--ink3);font-size:14px">✕</button>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+function toggleComprada(id, checked) {
+  const c = db.compras.find(x => x.id === id);
+  if (c) { c.status = checked ? 'comprado' : 'pendente'; save(); updateComprasBadge(); renderCompras(); }
+}
+
+function removeCompra(id) {
+  db.compras = db.compras.filter(x => x.id !== id);
+  save(); renderCompras(); updateComprasBadge();
+}
+
+function limparCompradas() {
+  if (!confirm('Remover todos os itens já comprados da lista?')) return;
+  db.compras = db.compras.filter(c => c.status !== 'comprado');
+  // Re-enable ingredients that were auto-added
+  save(); renderCompras(); updateComprasBadge();
+  toast('Itens comprados removidos!', 'ok');
+}
+
+function openAddCompra() {
+  const sel = document.getElementById('c-ing');
+  sel.innerHTML = db.ingredients.map(i => `<option value="${i.id}">${i.nome}</option>`).join('');
+  document.getElementById('c-obs').value = '';
+  document.getElementById('modal-compra').classList.remove('hidden');
+}
+
+function saveCompraManual() {
+  const ingId = parseInt(document.getElementById('c-ing').value);
+  const obs = document.getElementById('c-obs').value.trim();
+  if (!db.compras) db.compras = [];
+  if (!db.compras.find(c => c.ingId === ingId && c.status === 'pendente')) {
+    db.compras.push({ id: Date.now(), ingId, obs, status: 'pendente', auto: false });
+    save(); updateComprasBadge();
+  }
+  closeModal('modal-compra'); renderCompras();
+  toast('Adicionado à lista!', 'ok');
+}
+
+function exportarListaCompras() {
+  if (!db.compras) return;
+  const pending = db.compras.filter(c => c.status === 'pendente');
+  if (!pending.length) { toast('Nenhum item pendente', 'err'); return; }
+  const rows = pending.map(c => {
+    const ing = db.ingredients.find(i => i.id === c.ingId);
+    return `${ing?.nome||'?'} | ${ing?.categoria||'—'} | Último fornecedor: ${ing?.fornecedor||'—'} | ${c.obs||''}`;
+  }).join('
+');
+  const content = `ORIEM COSMÉTICOS — LISTA DE COMPRAS
+${new Date().toLocaleDateString('pt-BR')}
+${'='.repeat(50)}
+
+${rows}
+
+Total: ${pending.length} itens`;
+  const blob = new Blob([content], {type:'text/plain;charset=utf-8'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'oriem-compras-' + new Date().toISOString().slice(0,10) + '.txt';
+  a.click();
+  toast('Lista exportada!', 'ok');
+}
+
+// ── EXPORTAR ESTOQUE PARA IA ──
+function exportarEstoqueParaIA() {
+  const ings = db.ingredients.filter(i => i.disponivel !== false);
+  const linhas = ings.map(i => 
+    `• ${i.nome} [${i.categoria}${i.localizacao?' — '+i.localizacao:''}${i.quantidade?' — '+i.quantidade+(i.unidade?' '+i.unidade:''):''}]`
+  ).join('
+');
+  
+  const prompt = `Sou formulador cosmético da Oriem Cosméticos, marca vegana e sustentável do Brasil.
+
+Meu estoque atual de ingredientes disponíveis (${ings.length} itens):
+
+${linhas}
+
+[COLE SUA PERGUNTA AQUI]
+Ex: "Sugira uma fórmula de sérum facial hidratante usando ingredientes do meu estoque"
+Ex: "Quais ingredientes do meu estoque posso usar para formular um protetor solar natural?"
+Ex: "Analise se esses ingredientes são compatíveis para uma emulsão O/A"`;
+
+  const blob = new Blob([prompt], {type:'text/plain;charset=utf-8'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'oriem-estoque-para-ia.txt';
+  a.click();
+  toast('Arquivo exportado! Cole no ChatGPT ou Gemini.', 'ok');
+}
+
+// ── INIT ──
+load();
+if (!db.compras) db.compras = [];
+if (!db.fornecedores) db.fornecedores = [];
+seedFornecedoresFromIngredients();
+buildFilters();
+filterIngredientes();
+renderStats();
+syncCompras();
+updateComprasBadge();
+updateFornDatalist();
+</script>
+</body>
+</html>
